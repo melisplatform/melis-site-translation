@@ -1,0 +1,30 @@
+{
+  "name": "melisplatform/melis-site-translation",
+  "type": "melisplatform-module",
+  "license": "OSL-3.0",
+  "homepage": "https://github.com/melisplatform/melis-site-translation",
+  "support": {
+    "source": "https://github.com/melisplatform/melis-site-translation",
+    "issues": "https://github.com/melisplatform/melis-site-translationissues"
+  },
+  "keywords": [
+    "cms",
+    "melis",
+    "zf2",
+    "module"
+  ],
+  "extra": {
+    "module-name": "MelisSiteTranslation"
+  },
+  "require": {
+    "php": "^5.5 || ^7.0",
+    "melisplatform/melis-core": "~2.2.7",
+    "melisplatform/melis-engine": "~2.2.1",
+    "melisplatform/melis-cms": "~2.2.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "MelisSiteTranslation\\": "src/"
+    }
+  }
+}
