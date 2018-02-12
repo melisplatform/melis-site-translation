@@ -26,7 +26,7 @@ return array(
         'melis_site_translation' => array(
             'conf' => array(
                 'id' => 'id_melis_translation',
-                'name' => 'Melis Site Translation',
+                'name' => 'tr_melis_site_translation_name',
             ),
             'ressources' => array(
                 'js' => array(
