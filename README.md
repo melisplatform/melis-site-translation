@@ -51,7 +51,7 @@ $translatedText = $melisSiteTranslationService->getText($key, $langId);
 
 * **Melis Technology** - [www.melistechnology.com](https://www.melistechnology.com/)
 
-See also the list of [contributors](https://github.com/melisplatform/melis-cms/contributors) who participated in this project.
+See also the list of [contributors](https://github.com/melisplatform/melis-site-translation/contributors) who participated in this project.
 
 
 ## License
