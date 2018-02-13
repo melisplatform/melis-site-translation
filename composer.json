@@ -18,9 +18,6 @@
   },
   "require": {
     "php": "^5.5 || ^7.0",
-    "melisplatform/melis-core": "~2.2.7",
-    "melisplatform/melis-engine": "~2.2.1",
-    "melisplatform/melis-cms": "~2.2.1"
   },
   "autoload": {
     "psr-4": {

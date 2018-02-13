@@ -15,13 +15,13 @@ $(document).ready(function(){
         var melisKey = "melis_site_translation_tool_modal_edit_site_translation";
         var modalUrl = "/melis/MelisSiteTranslation/MelisSiteTranslation/renderMelisSiteTranslationModal";
 
-        var locale = $(this).closest("tr").attr('data-locale');
+        var langId = $(this).closest("tr").attr('data-lang-id');
         var key = $(this).closest("tr").find('td:first').text();
 
         mstt_id = $(this).closest("tr").attr('data-mstt-id');
         mst_id = $(this).closest("tr").attr('data-mst-id');
 
-        melisHelper.createModal(zoneId, melisKey, true, {translationKey:key, locale:locale},  modalUrl);
+        melisHelper.createModal(zoneId, melisKey, true, {translationKey:key, langId:langId},  modalUrl);
     });
 
     body.on("click", "#btnDeleteSiteTranslation", function(e){

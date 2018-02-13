@@ -24,33 +24,18 @@ class MelisSiteTranslationTable extends MelisGenericTable
         $this->idField = 'mst_id';
     }
 
-    public function getSiteTranslationTextByKey($key, $locale)
-    {
-        $select = $this->tableGateway->getSql()->select();
-        $select->join(array('mstt'=>'melis_site_translation_text'), 'mstt.mstt_mst_id = melis_site_translation.mst_id');
-        $select->join(array('lang'=>'melis_cms_lang'), 'mstt.mstt_lang_id = lang.lang_cms_id');
-        $select->where->equalTo("melis_site_translation.mst_key", $key);
-
-        if(!is_null($locale) && !empty($locale)){
-            $select->where->equalTo("lang.lang_cms_locale", $locale);
-        }
-
-        $data = $this->tableGateway->selectWith($select);
-        return $data;
-    }
-
-    public function getSiteTranslation($key, $locale)
+    public function getSiteTranslation($key, $langId)
     {
         $select = $this->tableGateway->getSql()->select();
         $select->join(array('mstt'=>'melis_site_translation_text'), 'mstt.mstt_mst_id = melis_site_translation.mst_id');
         $select->join(array('lang'=>'melis_cms_lang'), 'mstt.mstt_lang_id = lang.lang_cms_id');
 
-        if(!is_null($key) && !empty($locale)){
+        if(!is_null($key) && !empty($key)){
             $select->where->equalTo("melis_site_translation.mst_key", $key);
         }
 
-        if(!is_null($locale) && !empty($locale)){
-            $select->where->equalTo("lang.lang_cms_locale", $locale);
+        if(!is_null($langId) && !empty($langId)){
+            $select->where->equalTo("lang.lang_cms_id", $langId);
         }
 
         $data = $this->tableGateway->selectWith($select);

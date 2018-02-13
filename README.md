@@ -43,7 +43,7 @@ In case of problems, SQL files are located here:
 $melisSiteTranslationService = $this->getServiceLocator()->get('MelisSiteTranslationService');
 //translate a certain text using translation key(eg. tr_translation_name)
 //$locale - (optional) specify the text language(eg. en_EN, fr_FR)
-$translatedText = $melisSiteTranslationService->getSiteTranslationTextByKey($key, $locale);
+$translatedText = $melisSiteTranslationService->getText($key, $locale);
 
 ```
 

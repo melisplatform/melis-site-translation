@@ -10,11 +10,19 @@
 namespace MelisSiteTranslation\Service;
 
 
+use Composer\Composer;
+use Composer\Factory;
+use Composer\Package\CompletePackage;
+use Composer\IO\NullIO;
 use MelisEngine\Service\MelisEngineGeneralService;
-use Zend\Session\Container;
 
 class MelisSiteTranslationService extends MelisEngineGeneralService
 {
+
+    /**
+     * @var Composer
+     */
+    protected $composer;
 
     /**
      * Function to delete translation
@@ -214,64 +222,45 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
     /**
      * Function to get the translated text by key
      *
-     * @param null $translationKey
-     * @param null $locale - the language local (eg. en_EN, fr_FR, etc.)
+     * @param String $translationKey
+     * @param null $langId
      * @return mixed|null
      */
-    public function getSiteTranslationTextByKey($translationKey = null, $locale = null)
+    public function getText($translationKey, $langId = null)
     {
         // Event parameters prepare
         $arrayParameters = $this->makeArrayFromParameters(__METHOD__, func_get_args());
         //check if $translationKey is not empty
-        if (!is_null($arrayParameters['translationKey'])) {
-            try {
-                $arrayParameters['results'] = $arrayParameters['translationKey'];
-                // Sending service start event
-                $arrayParameters = $this->sendEvent('melis_site_translation_get_trans_by_key_start', $arrayParameters);
-
-                //if $locale is empty, get the current used locale
-                if(is_null($arrayParameters['locale'])){
-                    $container = new Container('melisplugins');
-                    $currentLocale = (isset($container['melis-plugins-lang-locale']) ? $container['melis-plugins-lang-locale'] : null);
-                    if(!is_null($currentLocale)){
-                        //use the current locale
-                        $arrayParameters['locale'] = $currentLocale;
-                    }else {
-                        //set default locale to english
-                        $arrayParameters['locale'] = 'en_EN';
+        $arrayParameters['results'] = $arrayParameters['translationKey'];
+        // Sending service start event
+        $arrayParameters = $this->sendEvent('melis_site_translation_get_trans_by_key_start', $arrayParameters);
+        if(!is_null($arrayParameters['langId']) && !empty($arrayParameters['langId'])) {
+            //get the data
+            $getAllTransMsg = $this->getSiteTranslation($arrayParameters['translationKey'], $arrayParameters['langId']);
+            if ($getAllTransMsg) {
+                //get the translated text
+                foreach ($getAllTransMsg as $transKey => $transMsg) {
+                    if ($arrayParameters['translationKey'] == $transMsg['mst_key']) {
+                        $arrayParameters['results'] = $transMsg['mstt_text'];
+                        break;
                     }
                 }
-                //get the data
-                $getAllTransMsg = $this->getSiteTranslationList($arrayParameters['translationKey'], $arrayParameters['locale']);
-                if($getAllTransMsg) {
-                    //get the translated text
-                    foreach ($getAllTransMsg as $transKey => $transMsg) {
-                        if ($arrayParameters['translationKey'] == $transMsg['mst_key']) {
-                            $arrayParameters['results'] = $transMsg['mstt_text'];
-                            break;
-                        }
-                    }
-                }
-                // Sending service end event
-                $arrayParameters = $this->sendEvent('melis_site_translation_get_trans_by_key_end', $arrayParameters);
-            } catch (\Exception $ex) {
-                //if we encounter an error, we just need to return the translationKey
-                $arrayParameters['results'] = $arrayParameters['translationKey'];
             }
-        }else{
-            $arrayParameters['results'] = null;
         }
+        // Sending service end event
+        $arrayParameters = $this->sendEvent('melis_site_translation_get_trans_by_key_end', $arrayParameters);
+
         return $arrayParameters['results'];
     }
 
     /**
      * Function to get all translated text in the file and in the db
      *
-     * @param null $locale - if provided, it will get only the translated text by locale (eg. en_EN, fr_FR, etc.)
+     * @param null $langId
      * @param null $translationKey - if provided, it will get only the translated text by key
      * @return array
      */
-    public function getSiteTranslationList($translationKey = null, $locale = null)
+    public function getSiteTranslation($translationKey = null, $langId = null)
     {
         try {
             // Event parameters prepare
@@ -281,12 +270,11 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
             /**
              * Get the translation from the database
              */
-            $transFromDb = $this->getSiteTranslationFromDb($arrayParameters['translationKey'], $arrayParameters['locale']);
+            $transFromDb = $this->getSiteTranslationFromDb($arrayParameters['translationKey'], $arrayParameters['langId']);
             /**
              *  Get all the translation from the file in every module
              */
-            $transFromFile = $this->getSiteTranslationFromFile($arrayParameters['translationKey'], $arrayParameters['locale']);
-
+            $transFromFile = $this->getSiteTranslationFromFile($arrayParameters['translationKey'], $arrayParameters['langId']);
             /**
              * Check if the translation from the file are already existed in the db
              * if it exist, don't include the translation from the file - the translation from db is the priority
@@ -295,7 +283,7 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
                 foreach ($transFromFile as $keyFile => $keyValue) {
                     foreach ($transFromDb as $keyFromDb => $valFromDb) {
                         //if the trans key from the file already exist in the db, don't include it
-                        if ($valFromDb['mst_key'] == $keyValue['mst_key'] && $valFromDb['mst_locale'] == $keyValue['mst_locale']) {
+                        if ($valFromDb['mst_key'] == $keyValue['mst_key'] && $valFromDb['mstt_lang_id'] == $keyValue['mstt_lang_id']) {
                             unset($transFromFile[$keyFile]);
                         }
                     }
@@ -304,6 +292,8 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
 
             //merge all the translations
             $translationData = array_merge($transFromFile, $transFromDb);
+            $translationData = array_values(array_unique($translationData, SORT_REGULAR));
+
             $arrayParameters['results'] = $translationData;
 
             $arrayParameters = $this->sendEvent('melis_site_translation_get_trans_list_end', $arrayParameters);
@@ -316,11 +306,11 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
     /**
      * Function to get all translation of every module in the file
      *
-     * @param null $locale - the language local (eg. en_EN, fr_FR, etc.)
+     * @param null $langId
      * @param $translationKey
      * @return array
      */
-    public function getSiteTranslationFromFile($translationKey = null, $locale = null)
+    public function getSiteTranslationFromFile($translationKey = null, $langId = null)
     {
 
         $transFromFile = array();
@@ -329,61 +319,74 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
         // Sending service start event
         $arrayParameters = $this->sendEvent('melis_site_translation_get_trans_list_from_file_start', $arrayParameters);
 
-        $modulesSvc = $this->getServiceLocator()->get('ModulesService');
-        $modules = $modulesSvc->getAllModules();
+        $modules = $this->getSitesModules();
 
         $moduleFolders = array();
         foreach ($modules as $module) {
-            array_push($moduleFolders, $modulesSvc->getModulePath($module));
+            //get path for each site
+            $modulePath = $_SERVER['DOCUMENT_ROOT'] . '/../module/MelisSites/'.$module;
+            if(is_dir($modulePath)){
+                array_push($moduleFolders, $modulePath);
+            }
         }
-
         $transFiles = array();
         $tmpTrans = array();
 
         $langTable = $this->getServiceLocator()->get('MelisEngineTableCmsLang');
-        $langList = $langTable->fetchAll()->toArray();
-
-        //get the locale
-        if (is_null($arrayParameters['locale']) && empty($arrayParameters['locale'])) {
-            foreach ($langList as $loc) {
-                array_push($transFiles,  $loc['lang_cms_locale'] . '.interface.php', $loc['lang_cms_locale'] . '.forms.php');
-            }
+        /**
+         * if langId is null or empty, get all the languages
+         */
+        if (is_null($arrayParameters['langId']) && empty($arrayParameters['langId'])) {
+            //get the language list
+            $langList = $langTable->fetchAll()->toArray();
         } else {
-            array_push($transFiles, $arrayParameters['locale'] . '.interface.php', $arrayParameters['locale'] . '.forms.php');
+            $langList = $langTable->getEntryById($arrayParameters['langId'])->toArray();
+        }
+
+        //get the language info
+        foreach ($langList as $loc) {
+            /**
+             * we need to concat the lang id and the lang locale to use it later
+             * so that we don't need to query again to get the lang id to make it a key of the array
+             * we just need to explode it to separate the id from the exact file name
+             */
+            $langStr = $loc['lang_cms_id'].'-'.$loc['lang_cms_locale'];
+            array_push($transFiles,  $langStr . '.php', $langStr . '.php');
         }
 
         //get the translation from each module
         set_time_limit(0);
         foreach ($moduleFolders as $module) {
+            //check if language folder is exist
             if (file_exists($module . '/language')) {
+                //loop through each filename
                 foreach ($transFiles as $file) {
-                    $file_info = explode(".", $file);
-                    if (file_exists($module . '/language/' . $file)) {
-                        array_push($tmpTrans, array($file_info[0] => include($module . '/language/' . $file)));
+                    //explode the file to separate the langId from the file name
+                    $file_info = explode("-", $file);
+                    $fName = $file_info[1];
+                    $langId = $file_info[0];
+                    //check if translation file exist
+                    if (file_exists($module . '/language/' . $fName)) {
+                        //get the contents of the translation file
+                        array_push($tmpTrans, array($langId => include($module . '/language/' . $file_info[1])));
                     }
                 }
             }
         }
 
         if ($tmpTrans) {
-            $lang_id = 0;
             foreach ($tmpTrans as $tmpIdx => $transKey) {
-                //loop again to get the translation from locale
-                foreach ($transKey as $localeKey => $value) {
-                    //get the language id by field since the translation from the file has no id of the language
-                    $langData = $langTable->getEntryByField('lang_cms_locale', $localeKey)->toArray();
-                    if(isset($langData[0])){
-                        $lang_id = $langData[0]['lang_cms_id'];
-                    }
+                //loop again to get the translation from langId
+                foreach ($transKey as $langId => $value) {
                     //loop to get the key and the text
                     foreach ($value as $k => $val) {
                         //check if key is not null to retrieve only the translation with equal to the key
                         if(!is_null($arrayParameters['translationKey']) && !empty($arrayParameters['translationKey'])) {
                             if ($k == $arrayParameters['translationKey']) {
-                                array_push($transFromFile, array('mst_id' => 0, 'mstt_id' => 0, 'mstt_lang_id' => $lang_id, 'mst_locale' => $localeKey, 'mst_key' => $k, 'mstt_text' => $val));
+                                array_push($transFromFile, array('mst_id' => 0, 'mstt_id' => 0, 'mstt_lang_id' => $langId, 'mst_key' => $k, 'mstt_text' => $val));
                             }
-                        }else{
-                            array_push($transFromFile, array('mst_id' => 0, 'mstt_id' => 0, 'mstt_lang_id' => $lang_id, 'mst_locale' => $localeKey, 'mst_key' => $k, 'mstt_text' => $val));
+                        }else{//return everything
+                            array_push($transFromFile, array('mst_id' => 0, 'mstt_id' => 0, 'mstt_lang_id' => $langId, 'mst_key' => $k, 'mstt_text' => $val));
                         }
                     }
                 }
@@ -399,11 +402,11 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
     /**
      * Function to get all translation from db
      *
-     * @param null $locale - the language local (eg. en_EN, fr_FR, etc.)
+     * @param null $langId
      * @param null $translationKey
      * @return array
      */
-    public function getSiteTranslationFromDb($translationKey = null, $locale = null)
+    public function getSiteTranslationFromDb($translationKey = null, $langId = null)
     {
         // Event parameters prepare
         $arrayParameters = $this->makeArrayFromParameters(__METHOD__, func_get_args());
@@ -412,14 +415,74 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
 
         $transFromDb = array();
         $mstTable = $this->getServiceLocator()->get('MelisSiteTranslationTable');
-        $translationFromDb = $mstTable->getSiteTranslation($arrayParameters['translationKey'], $arrayParameters['locale'])->toArray();
-        foreach ($translationFromDb as $keyDb => $valueDb) {
-            array_push($transFromDb, array('mst_id' => $valueDb['mst_id'], 'mstt_id' => $valueDb['mstt_id'], 'mstt_lang_id' => $valueDb['mstt_lang_id'], 'mst_locale' => $valueDb['lang_cms_locale'], 'mst_key' => $valueDb['mst_key'], 'mstt_text' => $valueDb['mstt_text']));
-        }
+        $translationFromDb = $mstTable->getSiteTranslation($arrayParameters['translationKey'], $arrayParameters['langId'])->toArray();
 
+        foreach ($translationFromDb as $keyDb => $valueDb) {
+            array_push($transFromDb, array('mst_id' => $valueDb['mst_id'], 'mstt_id' => $valueDb['mstt_id'], 'mstt_lang_id' => $valueDb['mstt_lang_id'], 'mst_key' => $valueDb['mst_key'], 'mstt_text' => $valueDb['mstt_text']));
+        }
         $arrayParameters['results'] = $transFromDb;
         $arrayParameters = $this->sendEvent('melis_site_translation_get_trans_list_from_db_end', $arrayParameters);
 
         return $arrayParameters['results'] ;
+    }
+
+    /** ======================================================================================================================= **/
+    /** ======================================================================================================================= **/
+    /** ======================================================================================================================= **/
+    /** ================================================= GET ALL SITES MODULES ================================================= **/
+    /** ======================================================================================================================= **/
+    /** ======================================================================================================================= **/
+    /** ======================================================================================================================= **/
+
+
+    private function getSitesModules()
+    {
+        $userModules = $_SERVER['DOCUMENT_ROOT'] . '/../module/MelisSites';
+
+        $modules = array();
+        if($this->checkDir($userModules)) {
+            $modules = $this->getDir($userModules);
+        }
+
+        return $modules;
+    }
+
+    /**
+     * This will check if directory exists and it's a valid directory
+     * @param $dir
+     * @return bool
+     */
+    protected function checkDir($dir)
+    {
+        if(file_exists($dir) && is_dir($dir))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns all the sub-folders in the provided path
+     * @param String $dir
+     * @param array $excludeSubFolders
+     * @return array
+     */
+    protected function getDir($dir, $excludeSubFolders = array())
+    {
+        $directories = array();
+        if(file_exists($dir)) {
+            $excludeDir = array_merge(array('.', '..', '.gitignore'), $excludeSubFolders);
+            $directory  = array_diff(scandir($dir), $excludeDir);
+
+            foreach($directory as $d) {
+                if(is_dir($dir.'/'.$d)) {
+                    $directories[] = $d;
+                }
+            }
+
+        }
+
+        return $directories;
     }
 }

@@ -10,6 +10,7 @@
 namespace MelisSiteTranslation\Controller;
 
 use Zend\Mvc\Controller\AbstractActionController;
+use Zend\Session\Container;
 use Zend\View\Model\ViewModel;
 use Zend\View\Model\JsonModel;
 use Zend\View\View;
@@ -106,7 +107,7 @@ class MelisSiteTranslationController extends AbstractActionController
     {
         $melisKey = $this->params()->fromRoute('melisKey', '');
         $translationKey = $this->params()->fromQuery('translationKey', null);
-        $locale = $this->params()->fromQuery('locale', null);
+        $langid = $this->params()->fromQuery('langId', null);
 
         // declare the Tool service that we will be using to completely create our tool.
         $melisTool = $this->getServiceLocator()->get('MelisCoreTool');
@@ -117,7 +118,7 @@ class MelisSiteTranslationController extends AbstractActionController
         $form = $melisTool->getForm('melissitetranslation_form');
 
         $melisSiteTranslationService = $this->getServiceLocator()->get('MelisSiteTranslationService');
-        $data = $melisSiteTranslationService->getSiteTranslationList($translationKey, $locale);
+        $data = $melisSiteTranslationService->getSiteTranslation($translationKey, $langid);
 
         if($data){
             $form->setData($data[0]);
@@ -264,13 +265,38 @@ class MelisSiteTranslationController extends AbstractActionController
             $length = $this->getRequest()->getPost('length');
 
             $melisSiteTranslationService = $this->getServiceLocator()->get('MelisSiteTranslationService');
-            $data = $melisSiteTranslationService->getSiteTranslationList();
-
+            //get the current usded lang id from the session
+            $container = new Container('meliscore');
+            $langIdBO = $container['melis-lang-id'];
+            $langId = null;
+            //get the language information
+            /**
+             * since there are possibility that the back office language and front language are not the same
+             * we need to get the language information from back office and compare it from the cms language
+             * using the language locale of both to get the exact language id
+             * to make sure that we retrieve the exact translation
+             */
+            $langCoreTbl = $this->getServiceLocator()->get('MelisCoreTableLang');
+            $langDetails = $langCoreTbl->getEntryById($langIdBO)->toArray();
+            if($langDetails){
+                $langCmsTbl = $this->getServiceLocator()->get('MelisEngineTableCmsLang');
+                foreach($langDetails as $langBO){
+                    $localeBO = $langBO['lang_locale'];
+                    $langCmsDetails = $langCmsTbl->getEntryByField('lang_cms_locale', $localeBO)->toArray();
+                    foreach($langCmsDetails as $langCms){
+                        $langId = $langCms['lang_cms_id'];
+                    }
+                }
+            }
+            //prepare the data to paginate
+            $data = $melisSiteTranslationService->getSiteTranslation(null, $langId);
             $a = [];
+            //process the translation list(pagination)
             for ($i = 0; $i < sizeof($data); $i++) {
                 $data[$i]['mstt_text'] = $melisTool->sanitize($data[$i]['mstt_text']);
 
-                $attrArray = array('data-locale'      => $data[$i]['mst_locale'],
+                //prepare the attribute for our row in the table
+                $attrArray = array('data-lang-id'     => $data[$i]['mstt_lang_id'],
                                     'data-mst-id'     => $data[$i]['mst_id'],
                                     'data-mstt-id'    => $data[$i]['mstt_id']);
 
