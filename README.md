@@ -42,8 +42,8 @@ In case of problems, SQL files are located here:
 //Get the service
 $melisSiteTranslationService = $this->getServiceLocator()->get('MelisSiteTranslationService');
 //translate a certain text using translation key(eg. tr_translation_name)
-//$locale - (optional) specify the text language(eg. en_EN, fr_FR)
-$translatedText = $melisSiteTranslationService->getText($key, $locale);
+//$langId - (optional) language id
+$translatedText = $melisSiteTranslationService->getText($key, $langId);
 
 ```
 
@@ -56,7 +56,7 @@ See also the list of [contributors](https://github.com/melisplatform/melis-cms/c
 
 ## License
 
-This project is licensed under the OSL-3.0 License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the OSL-3.0 License - see the [LICENSE](LICENSE) file for details
 
 
 
