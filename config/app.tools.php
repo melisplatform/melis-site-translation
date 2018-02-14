@@ -103,6 +103,7 @@ return array(
                                             'id' => 'mst_key',
                                             'value' => '',
                                             'required' => 'required',
+                                            'readonly' => 'readonly',
                                         ),
                                     ),
                                 ),

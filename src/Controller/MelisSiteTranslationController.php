@@ -80,7 +80,7 @@ class MelisSiteTranslationController extends AbstractActionController
      *
      * @return ViewModel
      */
-    public function renderMelisSiteTranslationModalAddSiteTranslationAction()
+    /*public function renderMelisSiteTranslationModalAddSiteTranslationAction()
     {
         $melisKey = $this->params()->fromRoute('melisKey', '');
 
@@ -96,7 +96,7 @@ class MelisSiteTranslationController extends AbstractActionController
         $view->setVariable('melissitetranslation_form', $form);
         $view->melisKey = $melisKey;
         return $view;
-    }
+    }*/
 
     /**
      * Function to render site translation edit modal
@@ -122,6 +122,9 @@ class MelisSiteTranslationController extends AbstractActionController
 
         if($data){
             $form->setData($data[0]);
+            /*if($data[0]['mst_id'] != 0) {
+                $form->get('mst_key')->setAttribute('readonly', false);
+            }*/
         }
 
         $view = new ViewModel();
@@ -289,8 +292,37 @@ class MelisSiteTranslationController extends AbstractActionController
                 }
             }
             //prepare the data to paginate
-            $data = $melisSiteTranslationService->getSiteTranslation(null, $langId);
+            $dataArr = $melisSiteTranslationService->getSiteTranslation();
             $a = [];
+
+            $tempAr = [];
+            $tempAr2 = [];
+            $temp = [];
+
+            //loop to separate the translation from the current BO language
+            foreach($dataArr as $d){
+                if($d['mstt_lang_id'] == $langId){
+                    array_push($tempAr, $d);
+                    array_push($temp, $d['mst_key']);
+                }else{
+                    array_push($tempAr2, $d);
+                }
+            }
+
+            $tempAr2 = array_values($tempAr2);
+            foreach($temp as $x){
+                for($i = 0; $i < sizeof($tempAr2); $i++){
+                    if($x == $tempAr2[$i]['mst_key']){
+                        unset($tempAr2[$i]);
+                        $tempAr2 = array_values($tempAr2);
+                    }
+                }
+            }
+
+            $data = array_merge($tempAr, $tempAr2);
+
+            $data = array_values(array_unique($data, SORT_REGULAR));
+
             //process the translation list(pagination)
             for ($i = 0; $i < sizeof($data); $i++) {
                 $data[$i]['mstt_text'] = $melisTool->sanitize($data[$i]['mstt_text']);
@@ -332,6 +364,19 @@ class MelisSiteTranslationController extends AbstractActionController
             'draw' => (int) $draw,
             'recordsTotal' => $dataCount,
             'recordsFiltered' =>  count($recordsFiltered),
+            'data' => $data,
+        ));
+    }
+
+    public function getSiteTranslationByKeyAndLangIdAction()
+    {
+
+        $langid = $this->params()->fromQuery('langId', null);
+        $translationKey = $this->params()->fromQuery('translationKey', null);
+
+        $melisSiteTranslationService = $this->getServiceLocator()->get('MelisSiteTranslationService');
+        $data = $melisSiteTranslationService->getSiteTranslation($translationKey, $langid);
+        return new JsonModel(array(
             'data' => $data,
         ));
     }
