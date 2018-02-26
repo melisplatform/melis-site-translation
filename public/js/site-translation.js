@@ -3,12 +3,12 @@ $(document).ready(function(){
     var mst_id = 0;
     var mstt_id = 0;
 
-    body.on("click", ".btnAddSiteTranslation", function() {
+    /*body.on("click", ".btnAddSiteTranslation", function() {
         var zoneId = "id_melis_site_translation_tool_modal_add_site_translation";
         var melisKey = "melis_site_translation_tool_modal_add_site_translation";
         var modalUrl = "/melis/MelisSiteTranslation/MelisSiteTranslation/renderMelisSiteTranslationModal";
         melisHelper.createModal(zoneId, melisKey, true, {},  modalUrl);
-    });
+    });*/
 
     body.on("click", ".btnEditSiteTranslation", function(){
         var zoneId = "id_melis_site_translation_tool_modal_edit_site_translation";
@@ -89,6 +89,37 @@ $(document).ready(function(){
            }
        });
         e.preventDefault();
+    });
+
+    body.on("change", "#site-translation-form #mstt_lang_id", function(){
+        var form = $("#site-translation-form");
+        var key = $("#site-translation-form #mst_key").val();
+        var langId = $(this).val();
+        var obj = {};
+        obj.translationKey = key;
+        obj.langId = langId;
+        $.ajax({
+            type        : 'GET',
+            url         : '/melis/MelisSiteTranslation/MelisSiteTranslation/getSiteTranslationByKeyAndLangId',
+            data		   : $.param(obj)
+        }).done(function(res){
+            var data = res.data;
+            if(data.length > 0) {
+                for (var i = 0; i < data.length; i++) {
+                    tinyMCE.activeEditor.setContent(data[i].mstt_text);
+                    form.find("#mstt_lang_id").val(data[i].mstt_lang_id);
+                    form.find("#mst_key").val(data[i].mst_key);
+                    mstt_id = data[i].mstt_id;
+                    mst_id = data[i].mst_id;
+                }
+            }else{
+                tinyMCE.activeEditor.setContent('');
+                form.find("#mstt_lang_id").val(langId);
+                form.find("#mst_key").removeAttr('readonly');
+                mstt_id = 0;
+                mst_id = 0;
+            }
+        });
     });
 });
 
