@@ -1,5 +1,6 @@
 {
   "name": "melisplatform/melis-site-translation",
+  "description": "Melis Platform Site Translation module",
   "type": "melisplatform-module",
   "license": "OSL-3.0",
   "homepage": "https://github.com/melisplatform/melis-site-translation",

@@ -348,10 +348,10 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
             /**
              * we need to concat the lang id and the lang locale to use it later
              * so that we don't need to query again to get the lang id to make it a key of the array
-             * we just need to explode it to separate the id from the exact file name
+             * we just need to explode it to separate the id from the locale
              */
             $langStr = $loc['lang_cms_id'].'-'.$loc['lang_cms_locale'];
-            array_push($transFiles,  $langStr . '.php', $langStr . '.php');
+            array_push($transFiles,  $langStr);
         }
 
         //get the translation from each module
@@ -363,12 +363,16 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
                 foreach ($transFiles as $file) {
                     //explode the file to separate the langId from the file name
                     $file_info = explode("-", $file);
-                    $fName = $file_info[1];
+                    $langLocale = $file_info[1];
                     $langId = $file_info[0];
-                    //check if translation file exist
-                    if (file_exists($module . '/language/' . $fName)) {
-                        //get the contents of the translation file
-                        array_push($tmpTrans, array($langId => include($module . '/language/' . $file_info[1])));
+                    //get all translation from language folder that contains language locale.
+                    $files = glob($module . '/language/*'.$langLocale.'*.php');
+                    foreach($files as $f) {
+                        //check if translation file exist
+                        if (file_exists($f)) {
+                            //get the contents of the translation file
+                            array_push($tmpTrans, array($langId => include($f)));
+                        }
                     }
                 }
             }

@@ -10,7 +10,7 @@ return array(
                             'interface' => array(
                                 'meliscms_tools_section' => array(
                                     'interface' => array(
-                                        'meliscms_tool_site' => array(
+                                        'meliscms_site_translation' => array(
                                             'conf' => array(
                                                 'type' => '/melis_site_translation/interface/melis_site_translation_tool',
                                             ),
@@ -72,7 +72,7 @@ return array(
                         ),
                     ),
                 ),
-                'melis_site_translation_tool_modal_add_site_translation' => array(
+                /*'melis_site_translation_tool_modal_add_site_translation' => array(
                     'conf' => array(
                         'id' => 'id_melis_site_translation_tool_modal_add_site_translation',
                         'melisKey' => 'melis_site_translation_tool_modal_add_site_translation',
@@ -86,7 +86,7 @@ return array(
                         'jscallback' => '',
                         'jsdatas' => array()
                     ),
-                ),
+                ),*/
                 'melis_site_translation_tool_modal_edit_site_translation' => array(
                     'conf' => array(
                         'id' => 'id_melis_site_translation_tool_modal_edit_site_translation',
