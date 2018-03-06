@@ -108,7 +108,7 @@ $(document).ready(function(){
                 for (var i = 0; i < data.length; i++) {
                     tinyMCE.activeEditor.setContent(data[i].mstt_text);
                     form.find("#mstt_lang_id").val(data[i].mstt_lang_id);
-                    form.find("#mst_key").val(data[i].mst_key);
+                    form.find("#mst_key").val(data[i].mst_key).attr('readonly', true);
                     mstt_id = data[i].mstt_id;
                     mst_id = data[i].mst_id;
                 }
