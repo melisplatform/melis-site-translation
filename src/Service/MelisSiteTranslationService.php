@@ -284,6 +284,8 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
                     foreach ($transFromDb as $keyFromDb => $valFromDb) {
                         //if the trans key from the file already exist in the db, don't include it
                         if ($valFromDb['mst_key'] == $keyValue['mst_key'] && $valFromDb['mstt_lang_id'] == $keyValue['mstt_lang_id']) {
+                            //transfer the trans file module name to db trans file module name
+                            $transFromDb[$keyFromDb]['module'] = $keyValue['module'];
                             unset($transFromFile[$keyFile]);
                         }
                     }
@@ -326,7 +328,7 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
             //get path for each site
             $modulePath = $_SERVER['DOCUMENT_ROOT'] . '/../module/MelisSites/'.$module;
             if(is_dir($modulePath)){
-                array_push($moduleFolders, $modulePath);
+                array_push($moduleFolders, array('path' => $modulePath, 'module' => $module));
             }
         }
         $transFiles = array();
@@ -358,7 +360,7 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
         set_time_limit(0);
         foreach ($moduleFolders as $module) {
             //check if language folder is exist
-            if (file_exists($module . '/language')) {
+            if (file_exists($module['path'] . '/language')) {
                 //loop through each filename
                 foreach ($transFiles as $file) {
                     //explode the file to separate the langId from the file name
@@ -366,31 +368,32 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
                     $langLocale = $file_info[1];
                     $langId = $file_info[0];
                     //get all translation from language folder that contains language locale.
-                    $files = glob($module . '/language/*'.$langLocale.'*.php');
+                    $files = glob($module['path'] . '/language/*'.$langLocale.'*.php');
                     foreach($files as $f) {
                         //check if translation file exist
                         if (file_exists($f)) {
                             //get the contents of the translation file
-                            array_push($tmpTrans, array($langId => include($f)));
+                            array_push($tmpTrans, array($langId => array('translations' => include($f), 'module' => $module['module'])));
                         }
                     }
                 }
             }
         }
 
+        //process/format the translations
         if ($tmpTrans) {
             foreach ($tmpTrans as $tmpIdx => $transKey) {
                 //loop again to get the translation from langId
                 foreach ($transKey as $langId => $value) {
                     //loop to get the key and the text
-                    foreach ($value as $k => $val) {
+                    foreach ($value['translations'] as $k => $val) {
                         //check if key is not null to retrieve only the translation with equal to the key
                         if(!is_null($arrayParameters['translationKey']) && !empty($arrayParameters['translationKey'])) {
                             if ($k == $arrayParameters['translationKey']) {
-                                array_push($transFromFile, array('mst_id' => 0, 'mstt_id' => 0, 'mstt_lang_id' => $langId, 'mst_key' => $k, 'mstt_text' => $val));
+                                array_push($transFromFile, array('mst_id' => 0, 'mstt_id' => 0, 'mstt_lang_id' => $langId, 'mst_key' => $k, 'mstt_text' => $val, 'module' => $value['module']));
                             }
                         }else{//return everything
-                            array_push($transFromFile, array('mst_id' => 0, 'mstt_id' => 0, 'mstt_lang_id' => $langId, 'mst_key' => $k, 'mstt_text' => $val));
+                            array_push($transFromFile, array('mst_id' => 0, 'mstt_id' => 0, 'mstt_lang_id' => $langId, 'mst_key' => $k, 'mstt_text' => $val, 'module' => $value['module']));
                         }
                     }
                 }
@@ -422,7 +425,7 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
         $translationFromDb = $mstTable->getSiteTranslation($arrayParameters['translationKey'], $arrayParameters['langId'])->toArray();
 
         foreach ($translationFromDb as $keyDb => $valueDb) {
-            array_push($transFromDb, array('mst_id' => $valueDb['mst_id'], 'mstt_id' => $valueDb['mstt_id'], 'mstt_lang_id' => $valueDb['mstt_lang_id'], 'mst_key' => $valueDb['mst_key'], 'mstt_text' => $valueDb['mstt_text']));
+            array_push($transFromDb, array('mst_id' => $valueDb['mst_id'], 'mstt_id' => $valueDb['mstt_id'], 'mstt_lang_id' => $valueDb['mstt_lang_id'], 'mst_key' => $valueDb['mst_key'], 'mstt_text' => $valueDb['mstt_text'], 'module' => null));
         }
         $arrayParameters['results'] = $transFromDb;
         $arrayParameters = $this->sendEvent('melis_site_translation_get_trans_list_from_db_end', $arrayParameters);
