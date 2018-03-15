@@ -15,11 +15,13 @@
     "module"
   ],
   "extra": {
-    "module-name": "MelisSiteTranslation"
+    "module-name": "MelisSiteTranslation",
+    "melis-site": false,
+    "melis-module-category": "cms"
   },
   "require": {
     "php": "^5.5 || ^7.0",
-	  "melisplatform/melis-core": "^2.3.0",
+    "melisplatform/melis-core": "^2.3.0",
     "melisplatform/melis-engine": "^2.3.0",
     "melisplatform/melis-front": "^2.3.0",
     "melisplatform/melis-cms": "^2.3.0"
