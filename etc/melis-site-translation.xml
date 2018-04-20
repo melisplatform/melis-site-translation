@@ -9,4 +9,16 @@
 		<mp_maintainers>melisplatform</mp_maintainers>
 		<mp_group>Melis Cms</mp_group>
 	</package_info>
+	<package_images>
+		<img_1>
+			<mpi_image_title>Melis Site Translation's tool</mpi_image_title>
+			<mpi_image_file>melis_translation-1.JPG</mpi_image_file>
+			<mpi_image_main>1</mpi_image_main>
+		</img_1>
+		<img_2>
+			<mpi_image_title>Melis Site Translation's edition of text</mpi_image_title>
+			<mpi_image_file>melis_translation-2.JPG</mpi_image_file>
+			<mpi_image_main>0</mpi_image_main>
+		</img_2>
+	</package_images>
 </melis-site-translation>
