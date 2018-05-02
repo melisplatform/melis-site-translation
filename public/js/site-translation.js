@@ -10,6 +10,11 @@ $(document).ready(function(){
         melisHelper.createModal(zoneId, melisKey, true, {},  modalUrl);
     });*/
 
+    body.on("change", "#siteTranslationSiteName", function(){
+        var tableId = $(this).parents().eq(6).find('table').attr('id');
+        $("#"+tableId).DataTable().ajax.reload();
+    });
+
     body.on("click", ".btnEditSiteTranslation", function(){
         var zoneId = "id_melis_site_translation_tool_modal_edit_site_translation";
         var melisKey = "melis_site_translation_tool_modal_edit_site_translation";
@@ -126,4 +131,11 @@ $(document).ready(function(){
 function initSiteTranslationTable(data, tblSetting){
     //hide delete button if data-mst-id is 0
     $("#tableMelisSiteTranslation tbody tr[data-mst-id='0']").find("#btnDeleteSiteTranslation").remove();
+}
+
+window.initSiteTranslationSiteList = function(data, tblSettings){
+    if($('#siteTranslationSiteName').length){
+        data.site_translation_site_name = $('#siteTranslationSiteName').val();
+    }
+
 }

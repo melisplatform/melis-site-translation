@@ -20,4 +20,9 @@
         'tr_melis_site_translation_empty_text' => 'Please insert translation text',
         'tr_melis_site_translation_delete_success' => 'Translation successfully deleted',
         'tr_melis_site_translation_delete_confirm' => 'Are you sure you want to delete this translation?',
+        'tr_melis_site_translation_site' => 'Site',
+        'tr_melis_site_translation_text_col' => 'Text',
+        'tr_melis_site_translation_key_col' => 'Key',
+        'tr_melis_site_translation_module_col' => 'Module',
+        'tr_melis_site_translation_choose' => 'Choose',
     );

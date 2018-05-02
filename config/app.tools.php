@@ -13,7 +13,7 @@ return array(
                         // table ID
                         'target' => '#tableMelisSiteTranslation',
                         'ajaxUrl' => '/melis/MelisSiteTranslation/MelisSiteTranslation/getTranslation',
-                        'dataFunction' => '',
+                        'dataFunction' => 'initSiteTranslationSiteList',
                         'ajaxCallback' => 'initSiteTranslationTable()',
                         'filters' => array(
                             'left' => array(
@@ -22,6 +22,11 @@ return array(
                                     'controller' => 'MelisSiteTranslation',
                                     'action' => 'render-melis-site-translation-content-filters-limit'
                                 ),
+                                'mt-tr-sites' => array(
+                                    'module' => 'MelisSiteTranslation',
+                                    'controller' => 'MelisSiteTranslation',
+                                    'action' => 'render-melis-site-translation-filters-sites'
+                                )
                             ),
                             'center' => array(
                                 'mt-tr-search' => array(
@@ -40,17 +45,21 @@ return array(
                         ),
                         'columns' => array(
                             'mst_key' => array(
-                                'text' => 'Key',
+                                'text' => 'tr_melis_site_translation_key_col',
+                                'sortable' => false,
+                            ),
+                            'module' => array(
+                                'text' => 'tr_melis_site_translation_module_col',
                                 'sortable' => false,
                             ),
                             'mstt_text' => array(
-                                'text' => 'Text',
+                                'text' => 'tr_melis_site_translation_text_col',
                                 'sortable' => false,
                             )
                         ),
 
                         // define what columns can be used in searching
-                        'searchables' => array('mst_key', 'mstt_text'),
+                        'searchables' => array('mst_key', 'module', 'mstt_text'),
                         'actionButtons' => array(
                             'edit' => array(
                                 'module' => 'MelisSiteTranslation',

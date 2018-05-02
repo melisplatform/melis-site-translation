@@ -20,4 +20,9 @@ return array(
     'tr_melis_site_translation_empty_text' => 'Veuillez insérer un texte de traduction',
     'tr_melis_site_translation_delete_success' => 'La traduction a bien été supprimée',
     'tr_melis_site_translation_delete_confirm' => 'Etes-vous sûr de vouloir supprimer cette traduction ?',
+    'tr_melis_site_translation_site' => 'Site',
+    'tr_melis_site_translation_text_col' => 'Text',
+    'tr_melis_site_translation_key_col' => 'Key',
+    'tr_melis_site_translation_module_col' => 'Module',
+    'tr_melis_site_translation_choose' => 'Choisir',
 );

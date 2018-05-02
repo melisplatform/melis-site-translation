@@ -250,6 +250,7 @@ class MelisSiteTranslationController extends AbstractActionController
         $data = array();
         $draw = 0;
         $recordsFiltered = 0;
+        $hasFilter = false;
 
         if($this->getRequest()->isPost()) {
             $melisTool = $this->getServiceLocator()->get('MelisCoreTool');
@@ -262,6 +263,8 @@ class MelisSiteTranslationController extends AbstractActionController
             //get search value
             $search = $this->getRequest()->getPost('search');
             $search = $search['value'];
+            //get site
+            $site = $this->getRequest()->getPost('site_translation_site_name');
             //get start(where to start to get package)
             $start = $this->getRequest()->getPost('start');
             //get length(how many package will be displayed)
@@ -335,7 +338,9 @@ class MelisSiteTranslationController extends AbstractActionController
                 //assign attribute data to table row
                 $data[$i]['DT_RowAttr'] = $attrArray;
 
+                //check if search is not empty(to filter by search)
                 if (!empty($search)) {
+                    $hasFilter = true;
                     //loop through each field to get its text, and check if has contain the $search value
                     foreach ($colId as $key => $val) {
                         if (isset($data[$i][$val])) {
@@ -346,10 +351,17 @@ class MelisSiteTranslationController extends AbstractActionController
                             }
                         }
                     }
+                }else{//check if we need to filter by site
+                    if(!empty($site)){
+                        $hasFilter = true;
+                        if($data[$i]['module'] == $site){
+                            array_push($a, $data[$i]);
+                        }
+                    }
                 }
             }
 
-            if(sizeof($a) > 0){
+            if($hasFilter){
                 //we need to make sure that there is no duplicate data in the array, and we need to re-index it again
                 $data = array_values(array_unique($a, SORT_REGULAR));
                 $recordsFiltered = $a;
@@ -358,6 +370,10 @@ class MelisSiteTranslationController extends AbstractActionController
             }
 
             $data = array_splice($data, $start, $length);
+            //sort the result by module name
+            usort($data, function($a, $b){
+                return strcasecmp($a['module'], $b['module']);
+            });
         }
 
         return new JsonModel(array(
@@ -368,6 +384,11 @@ class MelisSiteTranslationController extends AbstractActionController
         ));
     }
 
+    /**
+     * Function to get translation by key and lang id
+     *
+     * @return JsonModel
+     */
     public function getSiteTranslationByKeyAndLangIdAction()
     {
 
@@ -379,6 +400,51 @@ class MelisSiteTranslationController extends AbstractActionController
         return new JsonModel(array(
             'data' => $data,
         ));
+    }
+
+    /**
+     * Function list all sites from the page to used as filter by site
+     *
+     * @return ViewModel
+     */
+    public function renderMelisSiteTranslationFiltersSitesAction()
+    {
+        /**
+         * get the page site published
+         */
+        $pagePublished = $this->getServiceLocator()->get('MelisEngineTablePagePublished');
+        $published = $pagePublished->getEntryByField('page_type', 'SITE')->toArray();
+
+        /**
+         * get the page site saved
+         */
+        $pageSaved = $this->getServiceLocator()->get('MelisEngineTablePageSaved');
+        $saved = $pageSaved->getEntryByField('page_type', 'SITE')->toArray();
+
+        $data = array_merge($published, $saved);
+        /**
+         * get the folder name(module name) from template
+         */
+        $template = $this->getServiceLocator()->get('MelisEngineTableTemplate');
+        $translator = $this->getServiceLocator()->get('translator');
+        $sites = array();
+        $sites[] = '<option value="">'. $translator->translate('tr_melis_site_translation_choose') .'</option>';
+        $modules = array();
+        for($i = 0; $i < sizeof($data); $i++){
+            $tpl = $template->getEntryById($data[$i]['page_tpl_id']);
+            foreach($tpl as $d){
+                array_push($modules, array('site' => $data[$i]['page_name'], 'module' => $d->tpl_zf2_website_folder));
+            }
+        }
+
+        $modules = array_values(array_unique($modules, SORT_REGULAR));
+        foreach($modules as $site){
+            $sites[] = '<option value="'.$site['module'].'">'. $site['site'].'</option>';
+        }
+
+        $view = new ViewModel();
+        $view->sites = $sites;
+        return $view;
     }
 
     /**
