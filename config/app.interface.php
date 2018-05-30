@@ -6,9 +6,9 @@ return array(
             'interface' => array(
                 'meliscore_leftmenu' => array(
                     'interface' => array(
-                        'meliscore_toolstree' =>  array(
+                        'meliscms_toolstree_section' =>  array(
                             'interface' => array(
-                                'meliscms_tools_section' => array(
+                                'meliscms_site_tools' => array(
                                     'interface' => array(
                                         'meliscms_site_translation' => array(
                                             'conf' => array(
