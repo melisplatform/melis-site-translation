@@ -8,7 +8,14 @@ return array(
                     'interface' => array(
                         'meliscms_toolstree_section' =>  array(
                             'interface' => array(
-                                'meliscms_site_tools' => array(
+                                'meliscms_site_translation_section' => array(
+                                    'conf' => array(
+                                        'id' => 'id_meliscms_site_translation_section',
+                                        'name' => 'tr_melis_site_translations',
+                                        'icon' => 'fa-language',
+                                        'rights_checkbox_disable' => true,
+                                        'melisKey' => 'id_meliscms_site_translation_section',
+                                    ),
                                     'interface' => array(
                                         'meliscms_site_translation' => array(
                                             'conf' => array(
