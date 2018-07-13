@@ -3,8 +3,10 @@
 		<mp_title>Melis Site Translation</mp_title>
 		<mp_subtitle>The module that brings a translation tool for your websites</mp_subtitle>
 		<mp_description>
-			<p>MelisSiteTranslation allows your site's translation files to be overridden and edited directly by administrators in the back office without any need of developers or to edit the files.</p>
-			<p>It comes with a tool and a service to use in your website.</p>
+			<![CDATA[
+				<p>MelisSiteTranslation allows your site's translation files to be overridden and edited directly by administrators in the back office without any need of developers or to edit the files.</p>
+				<p>It comes with a tool and a service to use in your website.</p>
+			]]>
 		</mp_description>
 		<mp_maintainers>melisplatform</mp_maintainers>
 		<mp_group>Melis Cms</mp_group>
