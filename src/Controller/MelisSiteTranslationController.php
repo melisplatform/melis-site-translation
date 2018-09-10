@@ -212,7 +212,7 @@ class MelisSiteTranslationController extends AbstractActionController
         if($request->isPost())
         {
             //get and sanitize the data
-            $postValues = $melisTool->sanitizeRecursive(get_object_vars($request->getPost()), array(), false, true);
+            $postValues = $melisTool->sanitizeRecursive(get_object_vars($request->getPost()), array('mstt_text'), false, true);
             //we need to merge the data from mst_data and mstt_data array to validate the form
             $tempFormValidationData = array_merge($postValues['mst_data'], $postValues['mstt_data']);
             //assign the data to the form
