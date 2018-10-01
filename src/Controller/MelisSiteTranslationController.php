@@ -326,6 +326,11 @@ class MelisSiteTranslationController extends AbstractActionController
 
             $data = array_values(array_unique($data, SORT_REGULAR));
 
+            //striping tags to show full text on text column
+            foreach ($data as $key =>$d){
+                $data[$key]["mstt_text"] = strip_tags($data[$key]["mstt_text"]);
+            }
+            
             //process the translation list(pagination)
             for ($i = 0; $i < sizeof($data); $i++) {
                 $data[$i]['mstt_text'] = $melisTool->sanitize($data[$i]['mstt_text']);
