@@ -108,6 +108,7 @@ class MelisSiteTranslationController extends AbstractActionController
         $melisKey = $this->params()->fromRoute('melisKey', '');
         $translationKey = $this->params()->fromQuery('translationKey', null);
         $langid = $this->params()->fromQuery('langId', null);
+        $siteId = $this->params()->fromQuery('siteId', 0);
 
         // declare the Tool service that we will be using to completely create our tool.
         $melisTool = $this->getServiceLocator()->get('MelisCoreTool');
@@ -118,7 +119,7 @@ class MelisSiteTranslationController extends AbstractActionController
         $form = $melisTool->getForm('melissitetranslation_form');
 
         $melisSiteTranslationService = $this->getServiceLocator()->get('MelisSiteTranslationService');
-        $data = $melisSiteTranslationService->getSiteTranslation($translationKey, $langid);
+        $data = $melisSiteTranslationService->getSiteTranslation($translationKey, $langid, $siteId);
 
         if($data){
             $form->setData($data[0]);
@@ -312,13 +313,31 @@ class MelisSiteTranslationController extends AbstractActionController
                 }
             }
 
-            $tempAr2 = array_values($tempAr2);
             foreach($temp as $x){
-                for($i = 0; $i < sizeof($tempAr2); $i++){
-                    if($x == $tempAr2[$i]['mst_key']){
-                        unset($tempAr2[$i]);
-                        $tempAr2 = array_values($tempAr2);
+                foreach($tempAr2 as $key => $val){
+                    if($x == $val['mst_key']){
+                        unset($tempAr2[$key]);
                     }
+                }
+            }
+
+            /**
+             * Lets check again to avoid duplicate translations
+             *
+             * This will check only those translations that
+             * has different language from the BO
+             *
+             * Like if there are two or more translation keys inside the
+             * array that has different language but not equal to the
+             * BO lang, we need to get only one translations
+             * to display
+             */
+            $otherTransKey = array();
+            foreach($tempAr2 as $k => $v){
+                if(in_array($v['mst_key'], $otherTransKey)){
+                    unset($tempAr2[$k]);
+                }else{
+                    array_push($otherTransKey, $v['mst_key']);
                 }
             }
 
@@ -330,15 +349,16 @@ class MelisSiteTranslationController extends AbstractActionController
             foreach ($data as $key =>$d){
                 $data[$key]["mstt_text"] = strip_tags($data[$key]["mstt_text"]);
             }
-            
+
             //process the translation list(pagination)
             for ($i = 0; $i < sizeof($data); $i++) {
                 $data[$i]['mstt_text'] = $melisTool->sanitize($data[$i]['mstt_text']);
 
                 //prepare the attribute for our row in the table
                 $attrArray = array('data-lang-id'     => $data[$i]['mstt_lang_id'],
-                                    'data-mst-id'     => $data[$i]['mst_id'],
-                                    'data-mstt-id'    => $data[$i]['mstt_id']);
+                    'data-mst-id'     => $data[$i]['mst_id'],
+                    'data-mstt-id'    => $data[$i]['mstt_id'],
+                    'data-site-id'    => $data[$i]['mstt_site_id']);
 
                 //assign attribute data to table row
                 $data[$i]['DT_RowAttr'] = $attrArray;
@@ -396,12 +416,11 @@ class MelisSiteTranslationController extends AbstractActionController
      */
     public function getSiteTranslationByKeyAndLangIdAction()
     {
-
         $langid = $this->params()->fromQuery('langId', null);
+        $siteid = $this->params()->fromQuery('siteId', null);
         $translationKey = $this->params()->fromQuery('translationKey', null);
-
         $melisSiteTranslationService = $this->getServiceLocator()->get('MelisSiteTranslationService');
-        $data = $melisSiteTranslationService->getSiteTranslation($translationKey, $langid);
+        $data = $melisSiteTranslationService->getSiteTranslation($translationKey, $langid, $siteid, true);
         return new JsonModel(array(
             'data' => $data,
         ));
