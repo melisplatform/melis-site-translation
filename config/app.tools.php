@@ -85,6 +85,23 @@ return array(
                             'elements' => array(
                                 array(
                                     'spec' => array(
+                                        'name' => 'mstt_site_id',
+                                        'type' => 'MelisCmsSiteSelect',
+                                        'options' => array(
+                                            'label' => 'tr_melis_site_translation_select_language_site',
+                                            'empty_option' => 'tr_meliscms_form_common_Choose',
+                                            'tooltip' => 'tr_melis_site_translation_select_site_tooltip',
+                                            'disable_inarray_validator' => true,
+                                        ),
+                                        'attributes' => array(
+                                            'id' => 'mstt_site_id',
+                                            'value' => '',
+                                            'required' => 'required',
+                                        ),
+                                    ),
+                                ),
+                                array(
+                                    'spec' => array(
                                         'name' => 'mstt_lang_id',
                                         'type' => 'MelisCmsLanguageSelect',
                                         'options' => array(
@@ -134,6 +151,23 @@ return array(
                                 ),
                             ),
                             'input_filter' => array(
+                                'mstt_site_id' => array(
+                                    'name'     => 'mstt_site_id',
+                                    'required' => true,
+                                    'validators' => array(
+                                        array(
+                                            'name' => 'NotEmpty',
+                                            'options' => array(
+                                                'messages' => array(
+                                                    \Zend\Validator\NotEmpty::IS_EMPTY => 'tr_melis_site_translation_empty_site',
+                                                ),
+                                            ),
+                                        ),
+                                    ),
+                                    'filters'  => array(
+                                        array('name' => 'StringTrim'),
+                                    ),
+                                ),
                                 'mstt_lang_id' => array(
                                     'name'     => 'mstt_lang_id',
                                     'required' => true,

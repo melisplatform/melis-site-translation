@@ -26,4 +26,7 @@ return array(
     'tr_melis_site_translation_key_col' => 'Key',
     'tr_melis_site_translation_module_col' => 'Module',
     'tr_melis_site_translation_choose' => 'Choisir',
+    'tr_melis_site_translation_select_language_site' => 'Choisir le site',
+    'tr_melis_site_translation_empty_site' => 'Veuillez sélectionner un site',
+    'tr_melis_site_translation_select_site_tooltip' => 'Spécifiez à quel site appartient cette traduction',
 );

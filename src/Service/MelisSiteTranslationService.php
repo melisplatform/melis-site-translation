@@ -258,9 +258,11 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
      *
      * @param null $langId
      * @param null $translationKey - if provided, it will get only the translated text by key
+     * @param null $siteId
+     * @param null $isFromModal
      * @return array
      */
-    public function getSiteTranslation($translationKey = null, $langId = null)
+    public function getSiteTranslation($translationKey = null, $langId = null, $siteId = 0, $isFromModal = false)
     {
         try {
             // Event parameters prepare
@@ -268,13 +270,31 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
             // Sending service start event
             $arrayParameters = $this->sendEvent('melis_site_translation_get_trans_list_start', $arrayParameters);
             /**
+             * get site id from page in the the route
+             */
+            if(empty($arrayParameters['siteId'])) {
+                $router = $this->serviceLocator->get('router');
+                $request = $this->serviceLocator->get('request');
+
+                $routeMatch = $router->match($request);
+                $params = $routeMatch->getParams();
+                if (!empty($params)) {
+                    if (isset($params['idpage'])) {
+                        $pageId = $params['idpage'];
+                        $pageTreeService = $this->getServiceLocator()->get('MelisEngineTree');
+                        $site = $pageTreeService->getSiteByPageId($pageId);
+                        $arrayParameters['siteId'] = $site->site_id;
+                    }
+                }
+            }
+            /**
              * Get the translation from the database
              */
-            $transFromDb = $this->getSiteTranslationFromDb($arrayParameters['translationKey'], $arrayParameters['langId']);
+            $transFromDb = $this->getSiteTranslationFromDb($arrayParameters['translationKey'], $arrayParameters['langId'], $arrayParameters['siteId']);
             /**
              *  Get all the translation from the file in every module
              */
-            $transFromFile = $this->getSiteTranslationFromFile($arrayParameters['translationKey'], $arrayParameters['langId']);
+            $transFromFile = $this->getSiteTranslationFromFile($arrayParameters['translationKey'], $arrayParameters['langId'], $arrayParameters['siteId'], $arrayParameters['isFromModal']);
             /**
              * Check if the translation from the file are already existed in the db
              * if it exist, don't include the translation from the file - the translation from db is the priority
@@ -310,9 +330,11 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
      *
      * @param null $langId
      * @param $translationKey
+     * @param $siteId
+     * @param $isFromModal
      * @return array
      */
-    public function getSiteTranslationFromFile($translationKey = null, $langId = null)
+    public function getSiteTranslationFromFile($translationKey = null, $langId = null, $siteId = 0, $isFromModal = false)
     {
 
         $transFromFile = array();
@@ -324,11 +346,25 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
         $modules = $this->getSitesModules();
 
         $moduleFolders = array();
-        foreach ($modules as $module) {
-            //get path for each site
-            $modulePath = $_SERVER['DOCUMENT_ROOT'] . '/../module/MelisSites/'.$module;
-            if(is_dir($modulePath)){
-                array_push($moduleFolders, array('path' => $modulePath, 'module' => $module));
+        if($isFromModal) {
+            if(!empty($arrayParameters['siteId'])) {
+                $tplTable = $this->serviceLocator->get('MelisEngineTableTemplate');
+                $tlpData = $tplTable->getEntryByField('tpl_site_id', $arrayParameters['siteId'])->current();
+                if(!empty($tlpData)) {
+                    $folderName = $tlpData->tpl_zf2_website_folder;
+                    $modulePath = $_SERVER['DOCUMENT_ROOT'] . '/../module/MelisSites/' . $folderName;
+                    if (is_dir($modulePath)) {
+                        array_push($moduleFolders, array('path' => $modulePath, 'module' => $folderName));
+                    }
+                }
+            }
+        }else {
+            foreach ($modules as $module) {
+                //get path for each site
+                $modulePath = $_SERVER['DOCUMENT_ROOT'] . '/../module/MelisSites/' . $module;
+                if (is_dir($modulePath)) {
+                    array_push($moduleFolders, array('path' => $modulePath, 'module' => $module));
+                }
             }
         }
         $transFiles = array();
@@ -390,10 +426,10 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
                         //check if key is not null to retrieve only the translation with equal to the key
                         if(!is_null($arrayParameters['translationKey']) && !empty($arrayParameters['translationKey'])) {
                             if ($k == $arrayParameters['translationKey']) {
-                                array_push($transFromFile, array('mst_id' => 0, 'mstt_id' => 0, 'mstt_lang_id' => $langId, 'mst_key' => $k, 'mstt_text' => $val, 'module' => $value['module']));
+                                array_push($transFromFile, array('mst_id' => 0, 'mstt_id' => 0,'mstt_site_id' => $siteId, 'mstt_lang_id' => $langId, 'mst_key' => $k, 'mstt_text' => $val, 'module' => $value['module']));
                             }
                         }else{//return everything
-                            array_push($transFromFile, array('mst_id' => 0, 'mstt_id' => 0, 'mstt_lang_id' => $langId, 'mst_key' => $k, 'mstt_text' => $val, 'module' => $value['module']));
+                            array_push($transFromFile, array('mst_id' => 0, 'mstt_id' => 0, 'mstt_site_id' => $siteId, 'mstt_lang_id' => $langId, 'mst_key' => $k, 'mstt_text' => $val, 'module' => $value['module']));
                         }
                     }
                 }
@@ -411,9 +447,10 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
      *
      * @param null $langId
      * @param null $translationKey
+     * @param null $siteId
      * @return array
      */
-    public function getSiteTranslationFromDb($translationKey = null, $langId = null)
+    public function getSiteTranslationFromDb($translationKey = null, $langId = null, $siteId = 0)
     {
         // Event parameters prepare
         $arrayParameters = $this->makeArrayFromParameters(__METHOD__, func_get_args());
@@ -422,10 +459,14 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
 
         $transFromDb = array();
         $mstTable = $this->getServiceLocator()->get('MelisSiteTranslationTable');
-        $translationFromDb = $mstTable->getSiteTranslation($arrayParameters['translationKey'], $arrayParameters['langId'])->toArray();
+        if(empty($arrayParameters['translationKey']) && empty($arrayParameters['langId'])){
+            $translationFromDb = $mstTable->getTranslationAll()->toArray();
+        }else {
+            $translationFromDb = $mstTable->getSiteTranslation($arrayParameters['translationKey'], $arrayParameters['langId'], $arrayParameters['siteId'])->toArray();
+        }
 
         foreach ($translationFromDb as $keyDb => $valueDb) {
-            array_push($transFromDb, array('mst_id' => $valueDb['mst_id'], 'mstt_id' => $valueDb['mstt_id'], 'mstt_lang_id' => $valueDb['mstt_lang_id'], 'mst_key' => $valueDb['mst_key'], 'mstt_text' => $valueDb['mstt_text'], 'module' => null));
+            array_push($transFromDb, array('mst_id' => $valueDb['mst_id'], 'mstt_id' => $valueDb['mstt_id'], 'mstt_site_id' => $valueDb['mstt_site_id'], 'mstt_lang_id' => $valueDb['mstt_lang_id'], 'mst_key' => $valueDb['mst_key'], 'mstt_text' => $valueDb['mstt_text'], 'module' => null));
         }
         $arrayParameters['results'] = $transFromDb;
         $arrayParameters = $this->sendEvent('melis_site_translation_get_trans_list_from_db_end', $arrayParameters);
