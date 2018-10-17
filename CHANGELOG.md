@@ -9,6 +9,8 @@ All notable changes to this project will be documented in this file.
 ### Removed
 
 ## Release Notes
-## v2.4.0 - 2018-05-03
-* Added bundled CSS and JS
+## v3.0.0 - 2018-07-31
+* Updated bundled CSS and JS
 * Updated composer.json dependencies
+* Updated tools tree
+* Updated translation, added site id field
