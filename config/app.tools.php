@@ -86,7 +86,7 @@ return array(
                                 array(
                                     'spec' => array(
                                         'name' => 'mstt_site_id',
-                                        'type' => 'MelisCmsSiteSelect',
+                                        'type' => 'MeliSiteTranslationsCmsSiteSelectFactory',
                                         'options' => array(
                                             'label' => 'tr_melis_site_translation_select_language_site',
                                             'empty_option' => 'tr_meliscms_form_common_Choose',
