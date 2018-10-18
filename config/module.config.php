@@ -63,6 +63,11 @@ return array(
             'MelisSiteTranslation\Controller\MelisSiteTranslation' => 'MelisSiteTranslation\Controller\MelisSiteTranslationController',
         ),
     ),
+    'form_elements' => array(
+        'factories' => array(
+            'MeliSiteTranslationsCmsSiteSelectFactory' => 'MelisSiteTranslation\Form\Factory\MelisCmsSiteSelectFactory',
+        ),
+    ),
     'view_helpers' => array(
         'factories' => array(
             'siteTranslate' => 'MelisSiteTranslation\View\Helper\Factory\MelisSiteTranslateHelperFactory',
