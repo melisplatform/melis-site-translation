@@ -132,7 +132,6 @@ $(document).ready(function(){
             }else{
                 tinyMCE.activeEditor.setContent('');
                 form.find("#mstt_lang_id").val(langId);
-                form.find("#mst_key").removeAttr('readonly');
                 mstt_id = 0;
                 mst_id = 0;
             }
