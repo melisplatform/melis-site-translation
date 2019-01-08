@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 
 ## Release Notes
 ## v3.0.0 - 2018-07-31
-* Updated bundled CSS and JS
-* Updated composer.json dependencies
-* Updated tools tree
-* Updated translation, added site id field
+* Updated read me
+* Fixed errors on page creation & duplication
+* Changed Images for Marketplace
+* Bugs Fixes
