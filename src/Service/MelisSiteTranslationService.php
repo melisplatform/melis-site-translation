@@ -14,6 +14,8 @@ use Composer\Composer;
 use Composer\Factory;
 use Composer\Package\CompletePackage;
 use Composer\IO\NullIO;
+use MelisCore\Service\Factory\MelisCoreModulesServiceFactory;
+use MelisCore\Service\MelisCoreModulesService;
 use MelisEngine\Service\MelisEngineGeneralService;
 
 class MelisSiteTranslationService extends MelisEngineGeneralService
@@ -386,7 +388,15 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
                 $tlpData = $tplTable->getEntryByField('tpl_site_id', $arrayParameters['siteId'])->current();
                 if (!empty($tlpData)) {
                     $folderName = $tlpData->tpl_zf2_website_folder;
-                    $modulePath = $_SERVER['DOCUMENT_ROOT'] . '/../module/MelisSites/' . $folderName;
+
+                    //check if site is came from the vendor
+                    $moduleSrv = $this->getServiceLocator()->get('ModulesService');
+                    if(!empty($moduleSrv->getComposerModulePath($folderName))){
+                        $modulePath = $moduleSrv->getComposerModulePath($folderName);
+                    }else {
+                        $modulePath = $_SERVER['DOCUMENT_ROOT'] . '/../module/MelisSites/' . $folderName;
+                    }
+
                     if (is_dir($modulePath)) {
                         array_push($moduleFolders, array('path' => $modulePath, 'module' => $folderName));
                     }
@@ -400,7 +410,11 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
                     array_push($moduleFolders, array('path' => $modulePath, 'module' => $module));
                 }
             }
+            if(!empty($this->getSiteTranslationsFromVendor())){
+                $moduleFolders = array_merge($moduleFolders, $this->getSiteTranslationsFromVendor());
+            }
         }
+
         $transFiles = array();
         $tmpTrans = array();
 
@@ -474,6 +488,30 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
         $arrayParameters = $this->sendEvent('melis_site_translation_get_trans_list_from_file_end', $arrayParameters);
 
         return $arrayParameters['results'];
+    }
+
+    /**
+     * Get the translation from the site inside
+     * the vendor
+     *
+     * @return array
+     */
+    public function getSiteTranslationsFromVendor()
+    {
+        /** @var MelisCoreModulesService $moduleSrv */
+        $moduleSrv = $this->getServiceLocator()->get('ModulesService');
+        $vendordModules = $moduleSrv->getVendorModules();
+
+        $moduleFolders = array();
+        foreach ($vendordModules as $key => $module){
+            //check if module is site
+            if($moduleSrv->isSiteModule($module)){
+                //get the full path of the site module
+                $path = $moduleSrv->getComposerModulePath($module);
+                array_push($moduleFolders, array('path' => $path, 'module' => $module));
+            }
+        }
+        return $moduleFolders;
     }
 
     /** ======================================================================================================================= **/
