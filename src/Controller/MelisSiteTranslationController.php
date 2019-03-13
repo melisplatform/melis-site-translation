@@ -9,16 +9,19 @@
 
 namespace MelisSiteTranslation\Controller;
 
+use Zend\Form\Factory;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\Session\Container;
-use Zend\View\Model\ViewModel;
 use Zend\View\Model\JsonModel;
-use Zend\View\View;
+use Zend\View\Model\ViewModel;
 
 class MelisSiteTranslationController extends AbstractActionController
 {
     const TOOL_INDEX = 'melis_site_translation';
     const TOOL_KEY = 'melis_site_translation_tool';
+    const LOG_DELETE = 'SITE_TRANSLATE_DELETE';
+    const LOG_ADD = 'SITE_TRANSLATE_ADD';
+    const LOG_UPDATE = 'SITE_TRANSLATE_UPDATE';
 
     public function renderMelisSiteTranslationContentFiltersLimitAction()
     {
@@ -166,20 +169,44 @@ class MelisSiteTranslationController extends AbstractActionController
     public function deleteTranslationAction()
     {
         $success = false;
+        $textTitle = 'tr_melis_site_translation_del_translation';
+        $textMessage = 'tr_melis_site_translation_delete_fail';
+        $id = 0;
+
         //get the request
         $request = $this->getRequest();
-        $data = get_object_vars($request->getPost());
 
-        $melisSiteTranslationService = $this->getServiceLocator()->get('MelisSiteTranslationService');
-        $res = $melisSiteTranslationService->deleteTranslation($data);
+        if ($request->isPost()) {
+            $data = $request->getPost()->toArray();
+            $id = $data['mst_id'];
 
-        if($res)
-            $success = true;
+            $melisSiteTranslationService = $this->getServiceLocator()->get('MelisSiteTranslationService');
+            $res = $melisSiteTranslationService->deleteTranslation($data);
+            if ($res) {
+                $success = true;
+                $textMessage = 'tr_melis_site_translation_delete_success';
+            }
+        }
 
         //prepare the data to return
         $response = array(
-            'success'  =>  $success,
+            'success' => $success,
         );
+
+        $this->getEventManager()->trigger(
+            'melissitetranslation_del_translation_end',
+            $this,
+            array_merge(
+                $response,
+                [
+                    'textTitle' => $textTitle,
+                    'textMessage' => $textMessage,
+                    'typeCode' => self::LOG_DELETE,
+                    'itemId' => $id
+                ]
+            )
+        );
+
         return new JsonModel($response);
     }
 
@@ -194,38 +221,51 @@ class MelisSiteTranslationController extends AbstractActionController
      */
     public function saveTranslationAction()
     {
-
         $success = false;
-        $errors = array();
-
-        $melisMelisCoreConfig = $this->serviceLocator->get('MelisCoreConfig');
-        $melisTool = $this->getServiceLocator()->get('MelisCoreTool');
-        $appConfigForm = $melisMelisCoreConfig->getFormMergedAndOrdered('melis_site_translation/tools/melis_site_translation_tool/forms/melissitetranslation_form','melissitetranslation_form');
-
-        $factory = new \Zend\Form\Factory();
-        $formElements = $this->getServiceLocator()->get('FormElementManager');
-        $factory->setFormElementManager($formElements);
-        $propertyForm = $factory->createForm($appConfigForm);
+        $errors = [];
 
         //get the request
         $request = $this->getRequest();
+        $logTypeCode = self::LOG_ADD;
+        $id = 0;
+        $textTitle = 'tr_melis_site_translation_add_translation';
+        $textMessage = 'tr_melis_site_translation_save_failed';
+
         //check if request is post
-        if($request->isPost())
-        {
+        if ($request->isPost()) {
+            $melisMelisCoreConfig = $this->serviceLocator->get('MelisCoreConfig');
+            $melisTool = $this->getServiceLocator()->get('MelisCoreTool');
+            $appConfigForm = $melisMelisCoreConfig->getFormMergedAndOrdered('melis_site_translation/tools/melis_site_translation_tool/forms/melissitetranslation_form', 'melissitetranslation_form');
+
+            $factory = new Factory();
+            $formElements = $this->getServiceLocator()->get('FormElementManager');
+            $factory->setFormElementManager($formElements);
+            $propertyForm = $factory->createForm($appConfigForm);
+
             //get and sanitize the data
-            $postValues = $melisTool->sanitizeRecursive(get_object_vars($request->getPost()), array('mstt_text'), false, true);
+            $postValues = $melisTool->sanitizeRecursive($request->getPost()->toArray(), ['mstt_text'], false, true);
+
+            if (!empty($postValues['mst_id'])) {
+                $logTypeCode = self::LOG_UPDATE;
+                $id = $postValues['mst_id'];
+                $textTitle = 'tr_melis_site_translation_edit_translation';
+            }
+
             //we need to merge the data from mst_data and mstt_data array to validate the form
             $tempFormValidationData = array_merge($postValues['mst_data'], $postValues['mstt_data']);
             //assign the data to the form
             $propertyForm->setData($tempFormValidationData);
             //check if form is valid(if all the form field are match with the value that we pass from routes)
-            if($propertyForm->isValid()) {
+            if ($propertyForm->isValid()) {
+                /** @var \MelisSiteTranslation\Service\MelisSiteTranslationService $melisSiteTranslationService */
                 $melisSiteTranslationService = $this->getServiceLocator()->get('MelisSiteTranslationService');
                 $res = $melisSiteTranslationService->saveTranslation($postValues);
                 if ($res) {
+                    $textMessage = $logTypeCode === 'SITE_TRANSLATE_UPDATE' ? 'tr_melis_site_translation_update_success' : 'tr_melis_site_translation_inserting_success';
                     $success = true;
+                    $id = $res;
                 }
-            }else{
+            } else {
                 $appConfigForm = $appConfigForm['elements'];
                 $formErrors = $propertyForm->getMessages();
                 $errors = $this->processErrors($formErrors, $appConfigForm);
@@ -234,9 +274,24 @@ class MelisSiteTranslationController extends AbstractActionController
 
         //prepare the data to return
         $response = array(
-            'success'  =>  $success,
+            'success' => $success,
             'errors' => $errors
         );
+
+        $this->getEventManager()->trigger(
+            'melissitetranslation_save_translation_end',
+            $this,
+            array_merge(
+                $response,
+                [
+                    'textTitle' => $textTitle,
+                    'textMessage' => $textMessage,
+                    'typeCode' => $logTypeCode,
+                    'itemId' => $id
+                ]
+            )
+        );
+
         return new JsonModel($response);
     }
 

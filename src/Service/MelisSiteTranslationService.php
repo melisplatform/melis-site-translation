@@ -123,7 +123,7 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
                 if ($mstRes) {
                     $msttRes = $this->saveTranslationText($data['mstt_data'], $data['mstt_id']);
                     if ($msttRes) {
-                        $arrayParameters['results'] = true;
+                        $arrayParameters['results'] = $mstRes;
                     }
                 } else {
                     $arrayParameters['results'] = false;
@@ -134,7 +134,7 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
                     $data['mstt_data']['mstt_mst_id'] = $mstRes;
                     $msttRes = $this->saveTranslationText($data['mstt_data']);
                     if ($msttRes) {
-                        $arrayParameters['results'] = true;
+                        $arrayParameters['results'] = $mstRes;
                     }
                 } else {
                     $arrayParameters['results'] = false;
