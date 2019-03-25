@@ -261,7 +261,8 @@ class MelisSiteTranslationController extends AbstractActionController
                 $melisSiteTranslationService = $this->getServiceLocator()->get('MelisSiteTranslationService');
                 $res = $melisSiteTranslationService->saveTranslation($postValues);
                 if ($res) {
-                    $textMessage = $logTypeCode === 'SITE_TRANSLATE_UPDATE' ? 'tr_melis_site_translation_update_success' : 'tr_melis_site_translation_inserting_success';
+                    //$textMessage = $logTypeCode === 'SITE_TRANSLATE_UPDATE' ? 'tr_melis_site_translation_update_success' : 'tr_melis_site_translation_inserting_success';
+                    $textMessage = 'tr_melis_site_translation_update_success';
                     $success = true;
                     $id = $res;
                 }
