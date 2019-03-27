@@ -226,9 +226,9 @@ class MelisSiteTranslationController extends AbstractActionController
 
         //get the request
         $request = $this->getRequest();
-        $logTypeCode = self::LOG_ADD;
+        //$logTypeCode = self::LOG_ADD;
         $id = 0;
-        $textTitle = 'tr_melis_site_translation_add_translation';
+        $textTitle = 'tr_melis_site_translations';
         $textMessage = 'tr_melis_site_translation_save_failed';
 
         //check if request is post
@@ -246,7 +246,7 @@ class MelisSiteTranslationController extends AbstractActionController
             $postValues = $melisTool->sanitizeRecursive($request->getPost()->toArray(), ['mstt_text'], false, true);
 
             if (!empty($postValues['mst_id'])) {
-                $logTypeCode = self::LOG_UPDATE;
+                //$logTypeCode = self::LOG_UPDATE;
                 $id = $postValues['mst_id'];
                 $textTitle = 'tr_melis_site_translation_edit_translation';
             }
@@ -287,7 +287,7 @@ class MelisSiteTranslationController extends AbstractActionController
                 [
                     'textTitle' => $textTitle,
                     'textMessage' => $textMessage,
-                    'typeCode' => $logTypeCode,
+                    'typeCode' => self::LOG_UPDATE,
                     'itemId' => $id
                 ]
             )

@@ -75,11 +75,12 @@ $(document).ready(function(){
         }).done(function(data) {
             //process the returned data
             if(data.success){//success
-                if(mst_id == 0) {
-                    melisHelper.melisOkNotification(translations.tr_meliscore_common_success, translations.tr_melis_site_translation_inserting_success);
-                }else{
-                    melisHelper.melisOkNotification(translations.tr_meliscore_common_success, translations.tr_melis_site_translation_update_success);
-                }
+                // if(mst_id == 0) {
+                //     melisHelper.melisOkNotification(translations.tr_meliscore_common_success, translations.tr_melis_site_translation_inserting_success);
+                // }else{
+                //     melisHelper.melisOkNotification(translations.tr_meliscore_common_success, translations.tr_melis_site_translation_update_success);
+                // }
+                melisHelper.melisOkNotification(translations.tr_meliscore_common_success, translations.tr_melis_site_translation_update_success);
                 //remove highlighted label
                 melisCoreTool.highlightErrors(1, null, "site-translation-form");
                 $("#modal-site-translation").modal("hide");
