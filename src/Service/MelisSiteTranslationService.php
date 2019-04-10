@@ -14,8 +14,6 @@ use Composer\Composer;
 use Composer\Factory;
 use Composer\Package\CompletePackage;
 use Composer\IO\NullIO;
-use MelisCore\Service\Factory\MelisCoreModulesServiceFactory;
-use MelisCore\Service\MelisCoreModulesService;
 use MelisEngine\Service\MelisEngineGeneralService;
 
 class MelisSiteTranslationService extends MelisEngineGeneralService
@@ -390,9 +388,8 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
                     $folderName = $tlpData->tpl_zf2_website_folder;
 
                     //check if site is came from the vendor
-                    $moduleSrv = $this->getServiceLocator()->get('ModulesService');
-                    if(!empty($moduleSrv->getComposerModulePath($folderName))){
-                        $modulePath = $moduleSrv->getComposerModulePath($folderName);
+                    if(!empty($this->getComposerModulePath($folderName))){
+                        $modulePath = $this->getComposerModulePath($folderName);
                     }else {
                         $modulePath = $_SERVER['DOCUMENT_ROOT'] . '/../module/MelisSites/' . $folderName;
                     }
@@ -498,16 +495,14 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
      */
     public function getSiteTranslationsFromVendor()
     {
-        /** @var MelisCoreModulesService $moduleSrv */
-        $moduleSrv = $this->getServiceLocator()->get('ModulesService');
-        $vendordModules = $moduleSrv->getVendorModules();
+        $vendordModules = $this->getVendorModules();
 
         $moduleFolders = array();
         foreach ($vendordModules as $key => $module){
             //check if module is site
-            if($moduleSrv->isSiteModule($module)){
+            if($this->isSiteModule($module)){
                 //get the full path of the site module
-                $path = $moduleSrv->getComposerModulePath($module);
+                $path = $this->getComposerModulePath($module);
                 array_push($moduleFolders, array('path' => $path, 'module' => $module));
             }
         }
@@ -572,5 +567,131 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
         }
 
         return $directories;
+    }
+
+    /**
+     *
+     * ADDED THIS FUNCTIONS TO FIXED THE ERROR SINCE
+     * WE NEED TO GET ALSO THE TRANSLATION FROM THE
+     * SITE INSIDE VENDOR, SO WE NEED THE COMPOSER TO
+     * HANDLED IT. RIGHT NOW THE MODULE SERVICE IS
+     * ONLY AVAILABLE IN CORE, SO IT CANNOT BE USED
+     * ON FRONT, SO WE NEED TO CREATE THIS FUNCTION
+     * TO MADE A SOLUTION TO THIS PROBLEM, BUT THIS
+     * PROBLEM IS ALREADY SOLVED ON VERSION 2 OF THE
+     * SITE SINCE THE SITE-TRANSLATION-MODULE WILL
+     * BE TRANSFERRED INSIDE SITE TOOL
+     *
+     */
+
+
+    /**
+     * @return \Composer\Composer
+     */
+    protected function getComposer()
+    {
+        if (is_null($this->composer)) {
+            // required by composer factory but not used to parse local repositories
+            if (!isset($_ENV['COMPOSER_HOME'])) {
+                putenv("COMPOSER_HOME=/tmp");
+            }
+            $factory = new Factory();
+            $this->setComposer($factory->createComposer(new NullIO()));
+        }
+
+        return $this->composer;
+    }
+
+    /**
+     * @param Composer $composer
+     *
+     * @return $this
+     */
+    protected function setComposer(Composer $composer)
+    {
+        $this->composer = $composer;
+
+        return $this;
+    }
+
+    /**
+     * Returns all melisplatform-module packages loaded by composer
+     * @return array
+     */
+    protected function getVendorModules()
+    {
+        $repos = $this->getComposer()->getRepositoryManager()->getLocalRepository();
+
+        $packages = array_filter($repos->getPackages(), function ($package) {
+            /** @var CompletePackage $package */
+            return $package->getType() === 'melisplatform-module' &&
+                array_key_exists('module-name', $package->getExtra());
+        });
+
+        $modules = array_map(function ($package) {
+            /** @var CompletePackage $package */
+            return $package->getExtra()['module-name'];
+        }, $packages);
+
+        sort($modules);
+
+        return $modules;
+    }
+
+    /**
+     * @param $module
+     *
+     * @return bool
+     */
+    protected function isSiteModule($module)
+    {
+        $composerFile = $_SERVER['DOCUMENT_ROOT'] . '/../vendor/composer/installed.json';
+        $composer = (array) \Zend\Json\Json::decode(file_get_contents($composerFile));
+
+        $repo = null;
+
+        foreach ($composer as $package) {
+            $packageModuleName = isset($package->extra) ? (array) $package->extra : null;
+
+            if (isset($packageModuleName['module-name']) && $packageModuleName['module-name'] == $module) {
+                $repo = (array) $package->extra;
+                break;
+            }
+        }
+
+        if ($repo) {
+            if(isset($repo['melis-site'])) {
+                return (bool)$repo['melis-site'] ?? false;
+            }
+        }
+
+        return false;
+    }
+
+    protected function getComposerModulePath($moduleName, $returnFullPath = true)
+    {
+        $repos = $this->getComposer()->getRepositoryManager()->getLocalRepository();
+        $packages = $repos->getPackages();
+
+        if (!empty($packages)) {
+            foreach ($packages as $repo) {
+                if ($repo->getType() == 'melisplatform-module') {
+                    if (array_key_exists('module-name', $repo->getExtra())
+                        && $moduleName == $repo->getExtra()['module-name']) {
+                        foreach ($repo->getRequires() as $require) {
+                            $source = $require->getSource();
+
+                            if ($returnFullPath) {
+                                return $_SERVER['DOCUMENT_ROOT'] . '/../vendor/' . $source;
+                            } else {
+                                return '/vendor/' . $source;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return '';
     }
 }
