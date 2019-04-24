@@ -34,6 +34,7 @@ return array(
             'conf' => array(
                 'id' => 'id_melis_translation',
                 'name' => 'tr_melis_site_translation_name',
+                'rightsDisplay' => 'none'
             ),
             'ressources' => array(
                 'js' => array(
