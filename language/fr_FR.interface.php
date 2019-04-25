@@ -1,6 +1,7 @@
 <?php
 return array(
     'tr_melis_site_translation_name' => 'Traduction du site Melis',
+    'tr_melis_site_translation_content' => 'Contenu',
     'tr_melis_site_translations' => 'Site Traductions',
     'tr_melis_site_translation_name_description' => 'Cet outil permet de gérer les traductions de textes de chaque module',
     'tr_melis_site_translation_add_translation' => 'Ajoutez une traduction',
