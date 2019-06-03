@@ -21,10 +21,10 @@
   },
   "require": {
     "php": "^7.0",
-    "melisplatform/melis-core": "^2.3",
-    "melisplatform/melis-engine": "^2.3",
-    "melisplatform/melis-front": "^2.3",
-    "melisplatform/melis-cms": "^2.3"
+    "melisplatform/melis-core": "*",
+    "melisplatform/melis-engine": "*",
+    "melisplatform/melis-front": "*",
+    "melisplatform/melis-cms": "*",
   },
   "autoload": {
     "psr-4": {
