@@ -24,7 +24,7 @@
     "melisplatform/melis-core": "*",
     "melisplatform/melis-engine": "*",
     "melisplatform/melis-front": "*",
-    "melisplatform/melis-cms": "*",
+    "melisplatform/melis-cms": "*"
   },
   "autoload": {
     "psr-4": {
