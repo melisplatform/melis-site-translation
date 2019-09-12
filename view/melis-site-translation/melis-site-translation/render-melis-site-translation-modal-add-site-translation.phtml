@@ -28,8 +28,8 @@ $data_melisKey = $this->melisKey;
                                     echo $this->melisFieldCollection($form);
                                     echo $this->form()->closeTag();
                                 ?>
-                                <div align="right">
-                                    <a data-dismiss="modal" class="btn btn-danger pull-left"><i class="fa fa-times"></i> <?php echo $this->translate('tr_melis_site_translation_close_btn')?></a>
+                                <div class="footer-modal d-flex flex-row justify-content-between">
+                                    <a data-dismiss="modal" class="btn btn-danger"><i class="fa fa-times"></i> <?php echo $this->translate('tr_melis_site_translation_close_btn')?></a>
                                     <a class="btn btn-success btnSaveSiteTranslation"><i class="fa fa-save"></i>  <?php echo $this->translate('tr_melis_site_translation_save_btn'); ?></a>
                                 </div>
                             </div>
