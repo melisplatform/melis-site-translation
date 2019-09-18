@@ -1,1 +1,173 @@
-function initSiteTranslationTable(t,i){$("#tableMelisSiteTranslation tbody tr[data-mst-id='0']").find("#btnDeleteSiteTranslation").remove(),melisCore.paginateDataTables()}$(function(){var t=$("body"),i=0,a=0;t.on("change","#siteTranslationSiteName",function(){var t=$(this),i=t.parents().eq(6).find("table").attr("id");$("#"+i).DataTable().ajax.reload()}),t.on("click",".btnEditSiteTranslation",function(){var t=$(this),e=t.closest("tr").attr("data-lang-id"),s=t.closest("tr").attr("data-site-id"),n=t.closest("tr").find("td:first").text();a=t.closest("tr").attr("data-mstt-id"),i=t.closest("tr").attr("data-mst-id"),melisHelper.createModal("id_melis_site_translation_tool_modal_edit_site_translation","melis_site_translation_tool_modal_edit_site_translation",!0,{translationKey:n,langId:e,siteId:s},"/melis/MelisSiteTranslation/MelisSiteTranslation/renderMelisSiteTranslationModal")}),t.on("click","#btnDeleteSiteTranslation",function(t){var i=$(this),a=i.closest("tr").attr("data-mst-id"),e=i.closest("tr").attr("data-mstt-id"),s={};s.mst_id=a,s.mstt_id=e,0!=a&&""!=a&&melisCoreTool.confirm(translations.tr_meliscore_common_yes,translations.tr_meliscore_common_no,translations.tr_melis_site_translation_name,translations.tr_melis_site_translation_delete_confirm,function(){$.ajax({type:"POST",url:"/melis/MelisSiteTranslation/MelisSiteTranslation/deleteTranslation",data:$.param(s)}).done(function(t){t.success&&(melisHelper.melisOkNotification(translations.tr_meliscore_common_success,translations.tr_melis_site_translation_delete_success),melisHelper.zoneReload("id_melis_site_translation_tool_content","melis_site_translation_tool_content"))}).fail(function(){alert(translations.tr_meliscore_error_message)})}),t.preventDefault()}),t.on("click",".btnSaveSiteTranslation",function(t){var e=$("#site-translation-form"),s={};s.mstt_data={mstt_site_id:e.find("#mstt_site_id").val(),mstt_lang_id:e.find("#mstt_lang_id").val(),mstt_text:e.find("#mstt_text").val()},s.mst_data={mst_key:e.find("#mst_key").val()},s.mstt_id=a,s.mst_id=i,$.ajax({type:"POST",url:"/melis/MelisSiteTranslation/MelisSiteTranslation/saveTranslation",data:$.param(s)}).done(function(t){t.success?(melisHelper.melisOkNotification(translations.tr_meliscore_common_success,translations.tr_melis_site_translation_update_success),melisCoreTool.highlightErrors(1,null,"site-translation-form"),$("#modal-site-translation").modal("hide"),melisHelper.zoneReload("id_melis_site_translation_tool_content","melis_site_translation_tool_content",function(){i=0,a=0})):(melisHelper.melisKoNotification(translations.tr_melis_site_translation_name,translations.tr_melis_site_translation_save_failed,t.errors),melisCoreTool.highlightErrors(0,t.errors,"site-translation-form"))}).fail(function(){alert(translations.tr_meliscore_error_message)}),t.preventDefault()}),t.on("change","#site-translation-form #mstt_lang_id, #site-translation-form #mstt_site_id",function(){var t=$(this),e=$("#site-translation-form"),s=$("#site-translation-form #mst_key").val(),n=0,l=0;"mstt_lang_id"==t.attr("name")?(n=t.val(),l=$("#site-translation-form #mstt_site_id").val()):(l=t.val(),n=$("#site-translation-form #mstt_lang_id").val());var o={};o.translationKey=s,o.langId=n,o.siteId=l,$.ajax({type:"GET",url:"/melis/MelisSiteTranslation/MelisSiteTranslation/getSiteTranslationByKeyAndLangId",data:$.param(o)}).done(function(t){var s=t.data;if(s.length>0)for(var l=0;l<s.length;l++)tinyMCE.activeEditor.setContent(s[l].mstt_text),e.find("#mstt_lang_id").val(s[l].mstt_lang_id),e.find("#mst_key").val(s[l].mst_key).attr("readonly",!0),a=s[l].mstt_id,i=s[l].mst_id;else tinyMCE.activeEditor.setContent(""),e.find("#mstt_lang_id").val(n),a=0,i=0}).fail(function(){alert(translations.tr_meliscore_error_message)})})}),window.initSiteTranslationSiteList=function(t,i){$("#siteTranslationSiteName").length&&(t.site_translation_site_name=$("#siteTranslationSiteName").val())};
+$(function(){
+    var $body   = $("body"),
+        mst_id  = 0,
+        mstt_id = 0;
+
+        /*body.on("click", ".btnAddSiteTranslation", function() {
+            var zoneId = "id_melis_site_translation_tool_modal_add_site_translation";
+            var melisKey = "melis_site_translation_tool_modal_add_site_translation";
+            var modalUrl = "/melis/MelisSiteTranslation/MelisSiteTranslation/renderMelisSiteTranslationModal";
+            melisHelper.createModal(zoneId, melisKey, true, {},  modalUrl);
+        });*/
+
+        $body.on("change", "#siteTranslationSiteName", function() {
+            var $this   = $(this),
+                tableId = $this.parents().eq(6).find('table').attr('id');
+                
+                $("#"+tableId).DataTable().ajax.reload();
+        });
+
+        $body.on("click", ".btnEditSiteTranslation", function() {
+            // create modal variables
+            var zoneId      = "id_melis_site_translation_tool_modal_edit_site_translation",
+                melisKey    = "melis_site_translation_tool_modal_edit_site_translation",
+                modalUrl    = "/melis/MelisSiteTranslation/MelisSiteTranslation/renderMelisSiteTranslationModal",
+                // translation variables
+                $this       = $(this),
+                langId      = $this.closest("tr").attr('data-lang-id'),
+                siteId      = $this.closest("tr").attr('data-site-id'),
+                key         = $this.closest("tr").find('td:first').text();
+
+                mstt_id = $this.closest("tr").attr('data-mstt-id');
+                mst_id = $this.closest("tr").attr('data-mst-id');
+
+                melisHelper.createModal(zoneId, melisKey, true, {translationKey:key, langId:langId, siteId:siteId},  modalUrl);
+        });
+
+        $body.on("click", "#btnDeleteSiteTranslation", function(e) {
+            var $this   = $(this),
+                t_id    = $this.closest("tr").attr('data-mst-id'),
+                tt_id   = $this.closest("tr").attr('data-mstt-id'),
+                obj     = {};
+
+                obj.mst_id = t_id;
+                obj.mstt_id = tt_id;
+
+                if ( t_id != 0 && t_id != "" ) {
+                    melisCoreTool.confirm(
+                        translations.tr_meliscore_common_yes,
+                        translations.tr_meliscore_common_no,
+                        translations.tr_melis_site_translation_name,
+                        translations.tr_melis_site_translation_delete_confirm,
+                        function() {
+                            $.ajax({
+                                type: 'POST',
+                                url: '/melis/MelisSiteTranslation/MelisSiteTranslation/deleteTranslation',
+                                data: $.param(obj)
+                            }).done(function (data) {
+                                //process the returned data
+                                if (data.success) {//success
+                                    melisHelper.melisOkNotification(translations.tr_meliscore_common_success, translations.tr_melis_site_translation_delete_success);
+                                    melisHelper.zoneReload('id_melis_site_translation_tool_content', 'melis_site_translation_tool_content');
+                                }
+                            }).fail(function() {
+                                alert( translations.tr_meliscore_error_message );
+                            });
+                        });
+                }
+
+                e.preventDefault();
+        });
+
+        $body.on("click", ".btnSaveSiteTranslation", function(e) {
+            var form    = $("#site-translation-form"),
+                obj     = {};
+
+                obj.mstt_data   = {mstt_site_id:form.find("#mstt_site_id").val(),mstt_lang_id:form.find("#mstt_lang_id").val(), mstt_text:form.find("#mstt_text").val()};
+                obj.mst_data    = {mst_key:form.find("#mst_key").val()};
+                obj.mstt_id     = mstt_id;
+                obj.mst_id      = mst_id;
+
+                $.ajax({
+                    type        : 'POST',
+                    url         : '/melis/MelisSiteTranslation/MelisSiteTranslation/saveTranslation',
+                    data		   : $.param(obj)
+                }).done(function(data) {
+                    //process the returned data
+                    if(data.success){//success
+                        // if(mst_id == 0) {
+                        //     melisHelper.melisOkNotification(translations.tr_meliscore_common_success, translations.tr_melis_site_translation_inserting_success);
+                        // }else{
+                        //     melisHelper.melisOkNotification(translations.tr_meliscore_common_success, translations.tr_melis_site_translation_update_success);
+                        // }
+                        melisHelper.melisOkNotification(translations.tr_meliscore_common_success, translations.tr_melis_site_translation_update_success);
+                        //remove highlighted label
+                        melisCoreTool.highlightErrors(1, null, "site-translation-form");
+                        $("#modal-site-translation").modal("hide");
+                        melisHelper.zoneReload('id_melis_site_translation_tool_content','melis_site_translation_tool_content', function(){
+                            mst_id = 0;
+                            mstt_id = 0;
+                        });
+                    }else{//failed
+                        //show errors
+                        melisHelper.melisKoNotification(translations.tr_melis_site_translation_name, translations.tr_melis_site_translation_save_failed, data.errors);
+                        //highlight errors
+                        melisCoreTool.highlightErrors(0, data.errors, "site-translation-form");
+                    }
+                }).fail(function() {
+                    alert( translations.tr_meliscore_error_message );
+                });
+
+                e.preventDefault();
+        });
+
+        $body.on("change", "#site-translation-form #mstt_lang_id, #site-translation-form #mstt_site_id", function() {
+            var $this   = $(this),
+                form    = $("#site-translation-form"),
+                key     = $("#site-translation-form #mst_key").val(),
+                langId  = 0,
+                siteId  = 0;
+
+                if ( $this.attr("name") == "mstt_lang_id" ) {
+                    langId = $this.val();
+                    siteId = $("#site-translation-form #mstt_site_id").val();
+                } else {
+                    siteId = $this.val();
+                    langId = $("#site-translation-form #mstt_lang_id").val();
+                }
+
+                var obj = {};
+
+                    obj.translationKey  = key;
+                    obj.langId          = langId;
+                    obj.siteId          = siteId;
+                    
+                    $.ajax({
+                        type        : 'GET',
+                        url         : '/melis/MelisSiteTranslation/MelisSiteTranslation/getSiteTranslationByKeyAndLangId',
+                        data		: $.param(obj)
+                    }).done(function(res){
+                        var data = res.data;
+                        if ( data.length > 0 ) {
+                            for ( var i = 0; i < data.length; i++ ) {
+                                tinyMCE.activeEditor.setContent(data[i].mstt_text);
+                                form.find("#mstt_lang_id").val(data[i].mstt_lang_id);
+                                form.find("#mst_key").val(data[i].mst_key).attr('readonly', true);
+                                mstt_id = data[i].mstt_id;
+                                mst_id = data[i].mst_id;
+                            }
+                        } else {
+                            tinyMCE.activeEditor.setContent('');
+                            form.find("#mstt_lang_id").val(langId);
+                            mstt_id = 0;
+                            mst_id = 0;
+                        }
+                    }).fail(function(){
+                        alert( translations.tr_meliscore_error_message );
+                    });
+        });
+});
+
+function initSiteTranslationTable(data, tblSetting){
+    //hide delete button if data-mst-id is 0
+    $("#tableMelisSiteTranslation tbody tr[data-mst-id='0']").find("#btnDeleteSiteTranslation").remove();
+
+    // paginateDataTables data
+    melisCore.paginateDataTables();
+}
+
+window.initSiteTranslationSiteList = function(data, tblSettings){
+    if ( $('#siteTranslationSiteName').length ) {
+        data.site_translation_site_name = $('#siteTranslationSiteName').val();
+    }
+}
