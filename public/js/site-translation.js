@@ -18,7 +18,7 @@ $(function(){
         });
 
         $body.on("click", ".btnEditSiteTranslation", function() {
-            // create modal variables
+            // create modal variables/
             var zoneId      = "id_melis_site_translation_tool_modal_edit_site_translation",
                 melisKey    = "melis_site_translation_tool_modal_edit_site_translation",
                 modalUrl    = "/melis/MelisSiteTranslation/MelisSiteTranslation/renderMelisSiteTranslationModal",
