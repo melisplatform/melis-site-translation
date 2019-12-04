@@ -161,9 +161,6 @@ $(function(){
 function initSiteTranslationTable(data, tblSetting){
     //hide delete button if data-mst-id is 0
     $("#tableMelisSiteTranslation tbody tr[data-mst-id='0']").find("#btnDeleteSiteTranslation").remove();
-
-    // paginateDataTables data
-    melisCore.paginateDataTables();
 }
 
 window.initSiteTranslationSiteList = function(data, tblSettings){
