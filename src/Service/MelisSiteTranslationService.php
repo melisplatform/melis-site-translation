@@ -415,15 +415,16 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
         $transFiles = array();
         $tmpTrans = array();
 
-        $langTable = $this->getServiceLocator()->get('MelisEngineTableCmsLang');
+        /** @var MelisEngineLangService $langSrv */
+        $langSrv = $this->getServiceLocator()->get('MelisEngineLang');
         /**
          * if langId is null or empty, get all the languages
          */
         if (is_null($arrayParameters['langId']) && empty($arrayParameters['langId'])) {
             //get the language list
-            $langList = $langTable->fetchAll()->toArray();
+            $langList = $langSrv->getAvailableLanguages();
         } else {
-            $langList = $langTable->getEntryById($arrayParameters['langId'])->toArray();
+            $langList = $langSrv->getLangDataById($arrayParameters['langId']);
         }
 
         //get the language info
