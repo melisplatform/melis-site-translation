@@ -226,7 +226,7 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
      * @param null $langId
      * @return mixed|null
      */
-    public function getText($translationKey, $langId = null)
+    public function getText($translationKey, $langId = null, $siteId = 0)
     {
         // Event parameters prepare
         $arrayParameters = $this->makeArrayFromParameters(__METHOD__, func_get_args());
@@ -236,7 +236,7 @@ class MelisSiteTranslationService extends MelisEngineGeneralService
         $arrayParameters = $this->sendEvent('melis_site_translation_get_trans_by_key_start', $arrayParameters);
         if (!is_null($arrayParameters['langId']) && !empty($arrayParameters['langId'])) {
             //get the data
-            $getAllTransMsg = $this->getSiteTranslation($arrayParameters['translationKey'], $arrayParameters['langId']);
+            $getAllTransMsg = $this->getSiteTranslation($arrayParameters['translationKey'], $arrayParameters['langId'], $arrayParameters['siteId']);
             if ($getAllTransMsg) {
                 //get the translated text
                 foreach ($getAllTransMsg as $transKey => $transMsg) {
