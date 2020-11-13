@@ -34,6 +34,7 @@ return array(
             'conf' => array(
                 'id' => 'id_melis_translation',
                 'name' => 'tr_melis_site_translation_name',
+                'rightsDisplay' => 'none'
             ),
             'ressources' => array(
                 'js' => array(
@@ -78,7 +79,7 @@ return array(
                             'conf' => array(
                                 'id' => 'id_melis_site_translation_tool_content',
                                 'melisKey' => 'melis_site_translation_tool_content',
-                                'name' => 'tr_melis_site_translation_name',
+                                'name' => 'tr_melis_site_translation_content',
                                 'icon' => 'fa-wrench',
                             ),
                             'forward' => array(
